@@ -2,8 +2,19 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Instalação de dependências do sistema operacional
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Instalação de dependências do sistema operacional.
+# Use HTTPS para redes que bloqueiam tráfego HTTP de saída na rede de build do Docker.
+RUN set -eux; \
+    for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do \
+        if [ -f "$source" ]; then \
+            sed -i \
+                -e 's#http://deb.debian.org#https://deb.debian.org#g' \
+                -e 's#http://security.debian.org#https://security.debian.org#g' \
+                "$source"; \
+        fi; \
+    done; \
+    apt-get -o Acquire::Retries=5 update; \
+    apt-get install -y --no-install-recommends \
     curl \
     build-essential \
     && rm -rf /var/lib/apt/lists/*

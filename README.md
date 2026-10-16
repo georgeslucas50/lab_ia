@@ -4,14 +4,21 @@ Ambiente local de estudo para modelos, aplicações de chat, automações e serv
 
 ## Instalação no Windows
 
-Requisitos recomendados: Windows 11 (ou Windows 10 21H2/build 19044+), virtualização habilitada na BIOS/UEFI, 16 GB de RAM (32 GB recomendado), 8 GB de VRAM para modelos locais maiores e pelo menos 40 GB livres em disco. A instalação baixa imagens Docker e modelos de IA.
+Requisitos recomendados: Windows 11 (ou Windows 10 21H2/build 19044+), Git para Windows, virtualização habilitada na BIOS/UEFI, 16 GB de RAM (32 GB recomendado), 8 GB de VRAM para modelos locais maiores e pelo menos 40 GB livres em disco. A instalação baixa imagens Docker e modelos de IA.
 
-Abra PowerShell como Administrador na pasta do projeto e execute uma vez:
+> **Importante:** clone o repositório com Git. Não use **Code → Download ZIP** no GitHub: o arquivo ZIP não inclui o histórico Git necessário para verificar e aplicar atualizações pelo dashboard.
+
+Se o Git ainda não estiver instalado, instale o [Git para Windows](https://git-scm.com/download/win), feche e reabra o PowerShell. Depois execute:
 
 ```powershell
+git -c core.autocrlf=input clone https://github.com/georgeslucas50/lab_ia.git "$HOME\lab_ia"
+git -C "$HOME\lab_ia" config core.autocrlf input
+Set-Location "$HOME\lab_ia"
 Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\preparar_ambiente.ps1
 ```
+
+Essa configuração mantém os finais de linha compatíveis com os scripts Linux do WSL. O instalador solicita elevação pelo UAC quando necessário. Aceite para habilitar os componentes do Windows e configurar o WSL 2. Execute os comandos na pasta clonada; mantenha essa pasta no mesmo local para futuras atualizações.
 
 O instalador habilita WSL 2, instala Ubuntu 24.04, configura o usuário Linux `aluno` automaticamente na distribuição nova, habilita systemd e instala Docker Compose. Uma distribuição `Ubuntu-24.04` já existente é preservada. Se detectar uma GPU NVIDIA sem driver funcional, busca o driver assinado no site da NVIDIA e instala apenas o driver de vídeo no Windows. Se o catálogo não reconhecer a GPU ou a assinatura falhar, a stack continua em CPU e informa como habilitar a GPU depois. No Ubuntu WSL, instala o NVIDIA Container Toolkit, nunca o driver Linux. Se o Windows pedir reinicialização, o instalador retoma a configuração no próximo login.
 
@@ -49,6 +56,8 @@ As portas publicadas ficam vinculadas a `127.0.0.1`, para acesso apenas nesta m�
 No dashboard, **Documentação** abre o índice de guias por container e **Configurações** permite zerar um serviço ou o laboratório inteiro. O reset individual apaga os dados persistentes ligados ao serviço; o reset do PostgreSQL afeta também os bancos de n8n, Flowise, Open WebUI, LiteLLM e Phoenix. O reset do Redis limpa o cache compartilhado; os resets do LiteLLM e do Python MCP também limpam esse cache para restaurar seus estados iniciais, afetando temporariamente o cache e a memória compartilhada com outros serviços. O reset do Jupyter apaga notebooks e arquivos salvos. O reset completo limpa todos os volumes do projeto, recria os bancos iniciais e baixa novamente `llama3.2:3b` e `nomic-embed-text`; exige digitar a confirmação mostrada no painel. Arquivos do projeto, `.env`, WSL e imagens Docker são preservados.
 
 Em **Configurações**, **Verificar atualizações** compara a branch local com a branch remota configurada no Git. **Atualizar sistema** só é liberado quando o repositório está limpo e há commits remotos disponíveis (ou uma aplicação anterior ficou pendente). A operação exige digitar `ATUALIZAR LABORATÓRIO`, sincroniza somente com avanço rápido, valida o Compose, atualiza imagens e recria os serviços dos perfis `full` e `management`. Os volumes nomeados são preservados; os containers podem reiniciar e as imagens podem exigir vários gigabytes de download. Alterações locais, branches divergentes e branches sem remoto são bloqueadas para evitar sobrescrever trabalho. O instalador cria um token interno aleatório em `.env`; `GITHUB_TOKEN` é opcional e só deve ser preenchido localmente para remotos privados via HTTPS. Nunca publique `.env`.
+
+Em instalações antigas feitas pelo ZIP, execute o instalador atualizado para que ele tente preparar os metadados Git sem substituir arquivos locais. Para novas instalações, use sempre `git clone` como mostrado acima. Se os arquivos locais diferirem do repositório remoto, o dashboard bloqueará a atualização até que as diferenças sejam resolvidas.
 
 O JupyterLab usa o volume persistente `jupyter_storage`, inclui bibliotecas Python para dados e APIs de IA e recebe endpoints internos por variáveis de ambiente (`OLLAMA_HOST`, `OPENAI_BASE_URL`, `QDRANT_URL`, `NEO4J_URI`, `REDIS_URL`, `PYTHON_MCP_URL` e outras). Para entrar com o token gerado no `.env`, execute `scripts\abrir_jupyter.ps1`. As instruções e um exemplo inicial ficam em `learning\notebooks\INICIO.md`.
 

@@ -177,6 +177,83 @@ function ConvertTo-WslPath([string]$WindowsPath) {
     return $linuxPath
 }
 
+function Invoke-WslGit([string]$LinuxProject, [string[]]$GitArguments, [switch]$AllowFailure) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = @(& wsl.exe -d $Distro -u root -- git -c "safe.directory=$LinuxProject" -C $LinuxProject @GitArguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -ne 0 -and -not $AllowFailure) {
+        $details = ($output -join ' ').Trim()
+        if ($details) { throw "Falha ao configurar atualizações Git (código ${exitCode}): $details" }
+        throw "Falha ao configurar atualizações Git (código $exitCode)."
+    }
+    return [pscustomobject]@{ ExitCode = $exitCode; Output = @($output) }
+}
+
+function Initialize-UpdateRepository([string]$LinuxProject) {
+    $gitHubRemote = 'https://github.com/georgeslucas50/lab_ia.git'
+    & wsl.exe -d $Distro -u root -- test -e "$LinuxProject/.git"
+    $isRepository = $LASTEXITCODE -eq 0
+
+    $originResult = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('config', '--get', 'remote.origin.url') -AllowFailure
+    $origin = ($originResult.Output -join "`n").Trim()
+    $hasOrigin = -not [string]::IsNullOrWhiteSpace($origin)
+
+    if ($hasOrigin -and $origin -ne $gitHubRemote) {
+        Write-Warning 'O remoto origin aponta para outro repositório; não foi alterado. A atualização automática do laboratório ficará indisponível.'
+        return
+    }
+
+    if ($isRepository -and $hasOrigin) {
+        $headResult = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('rev-parse', '--verify', '--quiet', 'HEAD') -AllowFailure
+        if ($headResult.ExitCode -eq 0) { return }
+    } elseif ($isRepository) {
+        $headResult = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('rev-parse', '--verify', '--quiet', 'HEAD') -AllowFailure
+        if ($headResult.ExitCode -eq 0) {
+            Write-Warning 'Este repositório tem commits, mas não possui origin. Nenhum remoto foi alterado; configure o GitHub manualmente para habilitar atualizações.'
+            return
+        }
+    } else {
+        Write-Step 'Preparando atualizações Git para esta cópia do laboratório'
+        $null = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('init', '--initial-branch=main')
+        $null = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('config', 'core.autocrlf', 'input')
+    }
+
+    if (-not $hasOrigin) {
+        $null = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('remote', 'add', 'origin', $gitHubRemote)
+    }
+
+    $fetchResult = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('fetch', '--quiet', 'origin') -AllowFailure
+    if ($fetchResult.ExitCode -ne 0) {
+        $fetchDetails = ($fetchResult.Output -join ' ').Trim()
+        if ($fetchDetails) { Write-Warning "Não foi possível conectar ao GitHub para preparar as atualizações: $fetchDetails" }
+        else { Write-Warning 'Não foi possível conectar ao GitHub para preparar as atualizações.' }
+        Write-Warning 'O laboratório continuará a instalação; execute novamente este script quando a rede estiver disponível.'
+        return
+    }
+
+    $null = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('reset', '--mixed', 'origin/main')
+    $null = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('branch', '--set-upstream-to=origin/main', 'main')
+
+    $statusResult = Invoke-WslGit -LinuxProject $LinuxProject -GitArguments @('status', '--porcelain', '--untracked-files=normal') -AllowFailure
+    if ($statusResult.ExitCode -ne 0) {
+        Write-Warning 'Não foi possível conferir o estado Git local. Os arquivos do projeto foram preservados.'
+        return
+    }
+
+    $localChanges = ($statusResult.Output -join "`n").Trim()
+    if ($localChanges) {
+        Write-Warning 'A cópia local difere do GitHub. Os arquivos foram preservados e a atualização automática ficará bloqueada até essa diferença ser resolvida.'
+    } else {
+        Write-Host 'Atualizações Git configuradas para origin/main.' -ForegroundColor Green
+    }
+}
+
 function Start-WslKeepAlive {
     $wslProcesses = @(Get-CimInstance Win32_Process -Filter "Name = 'wsl.exe'" -ErrorAction SilentlyContinue)
     $keepAliveRunning = @($wslProcesses | Where-Object {
@@ -211,13 +288,14 @@ if ($osBuild -lt 19044) {
 Write-Host 'Laboratório de IA: configuração do Windows, WSL 2, Ubuntu 24.04 e Docker.' -ForegroundColor Green
 Write-Host 'A instalação pode baixar vários gigabytes de imagens e modelos.'
 
-$wslFeature = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
-$vmFeature = Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform
 $featuresChanged = $false
-foreach ($feature in @($wslFeature, $vmFeature)) {
-    if ($feature.State -ne 'Enabled') {
-        Enable-WindowsOptionalFeature -Online -FeatureName $feature.FeatureName -All -NoRestart | Out-Null
+foreach ($featureName in @('Microsoft-Windows-Subsystem-Linux', 'VirtualMachinePlatform')) {
+    & dism.exe /Online /Enable-Feature "/FeatureName:$featureName" /All /NoRestart
+    $dismExitCode = $LASTEXITCODE
+    if ($dismExitCode -in @(3010, 1641)) {
         $featuresChanged = $true
+    } elseif ($dismExitCode -ne 0) {
+        throw "O DISM não conseguiu habilitar '$featureName' (código $dismExitCode). Execute o script como administrador e confira o log em C:\Windows\Logs\DISM\dism.log."
     }
 }
 if ($featuresChanged) {
@@ -308,6 +386,7 @@ if ($LASTEXITCODE -ne 0) { throw "A instalação do Docker no Ubuntu falhou (có
 Ensure-EnvironmentFile
 
 $linuxProject = ConvertTo-WslPath $ProjectRoot
+Initialize-UpdateRepository $linuxProject
 
 Write-Step 'Mantendo o Ubuntu WSL ativo enquanto o laboratório está ligado'
 Start-WslKeepAlive
