@@ -1,0 +1,8 @@
+fastmcp>=4.0,<5
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+httpx>=0.28,<1
+pydantic>=2.10,<3
+redis>=5,<7
+beautifulsoup4>=4.12,<5
+lxml>=5.1,<7

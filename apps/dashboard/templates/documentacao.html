@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1020">
+  <title>Laboratório IA | Documentação</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016-2">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="/dashboard" aria-label="Laboratório IA, início">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span><strong>Laboratório IA</strong><small>EsCom · Seção Delta</small></span>
+      </a>
+      <div class="nav-label">Workspace</div>
+      <a class="nav-link" href="/dashboard" title="Serviços"><span aria-hidden="true">▦</span> Serviços</a>
+      <a class="nav-link active" href="/documentacao" title="Documentação" aria-current="page"><span aria-hidden="true">▤</span> Documentação</a>
+      <a class="nav-link" href="/configuracoes" title="Configurações"><span aria-hidden="true">⚙</span> Configurações</a>
+      <a class="nav-link" href="/diagrama" title="Arquitetura"><span aria-hidden="true">⌘</span> Arquitetura</a>
+      <a class="nav-link" href="/" title="Início"><span aria-hidden="true">⌂</span> Início</a>
+      <div class="sidebar-note">
+        <span class="note-icon" aria-hidden="true">⌁</span>
+        <strong>Ambiente local</strong>
+        <p>Os serviços são acessíveis apenas neste computador.</p>
+      </div>
+      <div class="sidebar-footer"><span class="live-dot"></span> Painel conectado</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>Documentação</strong></div>
+        <div class="topbar-actions"><span class="local-pill"><span class="live-dot"></span> GUIAS DOS CONTAINERS</span><a class="button button-quiet" href="/dashboard">Voltar aos serviços</a></div>
+      </header>
+
+      <section class="page-intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">CENTRAL DE APRENDIZAGEM</p>
+          <h1 id="page-title">Documentação</h1>
+          <p class="intro-copy">Guias de uso, conceitos e exemplos práticos para os serviços do laboratório.</p>
+        </div>
+      </section>
+
+      <section class="docs-intro-card">
+        <span class="docs-intro-icon" aria-hidden="true">▤</span>
+        <div><p class="eyebrow">CONTEÚDO EM PREPARAÇÃO</p><h2>Guias para cada container</h2><p>Esta área reúne a estrutura de documentação do laboratório. Os guias serão adicionados por serviço.</p></div>
+      </section>
+
+      <section class="settings-section" aria-labelledby="docs-list-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">ÍNDICE</p><h2 id="docs-list-title">Serviços documentados</h2></div>
+          <span class="results-count">{{ services | length }} containers</span>
+        </div>
+        <div class="docs-grid">
+          {% for service in services %}
+          <article class="docs-card">
+            <div class="docs-card-top"><span class="service-icon" aria-hidden="true">{{ service.icon }}</span><span class="docs-status">EM BREVE</span></div>
+            <p class="docs-category">{{ service.category }}</p>
+            <h3>{{ service.name }}</h3>
+            <p class="docs-description">{{ service.description }}</p>
+            <span class="docs-placeholder">Guia de uso em preparação</span>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <footer class="page-footer"><span>Laboratório de Inteligência Artificial</span><span>Documentação dos containers</span></footer>
+    </main>
+  </div>
+</body>
+</html>

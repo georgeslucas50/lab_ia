@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1020">
+  <title>Laboratório IA | Configurações</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016-2">
+  <script defer src="/static/js/settings.js?v=20261016-3"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="/dashboard" aria-label="Laboratório IA, início">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span><strong>Laboratório IA</strong><small>EsCom · Seção Delta</small></span>
+      </a>
+      <div class="nav-label">Workspace</div>
+      <a class="nav-link" href="/dashboard" title="Serviços"><span aria-hidden="true">▦</span> Serviços</a>
+      <a class="nav-link" href="/documentacao" title="Documentação"><span aria-hidden="true">▤</span> Documentação</a>
+      <a class="nav-link active" href="/configuracoes" title="Configurações" aria-current="page"><span aria-hidden="true">⚙</span> Configurações</a>
+      <a class="nav-link" href="/diagrama" title="Arquitetura"><span aria-hidden="true">⌘</span> Arquitetura</a>
+      <a class="nav-link" href="/" title="Início"><span aria-hidden="true">⌂</span> Início</a>
+      <div class="sidebar-note">
+        <span class="note-icon" aria-hidden="true">⌁</span>
+        <strong>Ambiente local</strong>
+        <p>Os serviços são acessíveis apenas neste computador.</p>
+      </div>
+      <div class="sidebar-footer"><span class="live-dot"></span> Painel conectado</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>Configurações</strong></div>
+        <div class="topbar-actions"><span class="local-pill"><span class="live-dot"></span> Somente local</span><a class="button button-quiet" href="/dashboard">Voltar aos serviços</a></div>
+      </header>
+
+      <section class="page-intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">PREFERÊNCIAS E MANUTENÇÃO</p>
+          <h1 id="page-title">Configurações do laboratório</h1>
+          <p class="intro-copy">Aplique versões publicadas do laboratório e gerencie os dados dos serviços.</p>
+        </div>
+      </section>
+
+      <section class="update-panel" aria-labelledby="update-title">
+        <div class="update-panel-icon" aria-hidden="true">↻</div>
+        <div class="update-panel-main">
+          <p class="eyebrow">MANUTENÇÃO DO SISTEMA</p>
+          <h2 id="update-title">Atualizar o laboratório</h2>
+          <p>Verifique novas alterações no branch configurado do GitHub. A atualização sincroniza o código, baixa imagens novas e recria os containers necessários.</p>
+          <div class="update-status" id="update-status" data-state="idle" role="status" aria-live="polite">
+            <span class="update-status-dot" aria-hidden="true"></span>
+            <span id="update-status-text">Verifique se há uma versão nova no GitHub.</span>
+          </div>
+          <p class="update-version" id="update-version" hidden></p>
+        </div>
+        <div class="update-panel-actions">
+          <button class="button button-quiet" id="check-updates-button" type="button">Verificar atualizações</button>
+          <button class="button button-update" id="apply-update-button" type="button" disabled>Atualizar sistema</button>
+        </div>
+      </section>
+      <div class="update-progress" id="update-progress" role="status" aria-live="polite" hidden>
+        <span class="reset-progress-spinner" aria-hidden="true"></span>
+        <div><strong id="update-progress-phase">Preparando atualização</strong><p id="update-progress-message"></p></div>
+      </div>
+
+      <section class="reset-banner" aria-labelledby="reset-all-title">
+        <div class="reset-banner-icon" aria-hidden="true">↺</div>
+        <div class="reset-banner-copy">
+          <p class="eyebrow">AÇÃO IRREVERSÍVEL</p>
+          <h2 id="reset-all-title">Zerar o laboratório</h2>
+          <p>Apaga notebooks, chats, fluxos, bancos, coleções, caches, modelos baixados e demais dados salvos pelos serviços. Os dois modelos iniciais do Ollama serão baixados novamente.</p>
+          <p class="reset-preserved"><span aria-hidden="true">ⓘ</span> Os arquivos de configuração do projeto, o arquivo <code>.env</code>, a distribuição WSL e as imagens Docker serão preservados.</p>
+        </div>
+        <button class="button button-danger reset-all-button" id="reset-all-button" type="button">Zerar tudo</button>
+      </section>
+
+      <div class="reset-progress" id="reset-progress" role="status" aria-live="polite" hidden>
+        <span class="reset-progress-spinner" aria-hidden="true"></span>
+        <div><strong id="reset-progress-phase">Preparando reset</strong><p id="reset-progress-message"></p></div>
+      </div>
+
+      <section class="settings-section" aria-labelledby="service-reset-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">CONTROLE INDIVIDUAL</p><h2 id="service-reset-title">Zerar um serviço</h2></div>
+          <span class="results-count">O estado dos outros serviços será preservado sempre que possível.</span>
+        </div>
+        <div class="reset-service-list" id="reset-service-list"></div>
+      </section>
+
+      <footer class="page-footer"><span>Laboratório de Inteligência Artificial</span><span>Confirmação digitada exigida antes de apagar dados</span></footer>
+    </main>
+  </div>
+
+  <dialog id="reset-dialog" class="reset-dialog" aria-labelledby="reset-dialog-title">
+    <div class="dialog-mark" aria-hidden="true">!</div>
+    <p class="eyebrow">CONFIRMAÇÃO DE RESET</p>
+    <h2 id="reset-dialog-title">Zerar serviço?</h2>
+    <p class="reset-dialog-copy" id="reset-dialog-copy"></p>
+    <p class="reset-dialog-warning" id="reset-dialog-warning" hidden></p>
+    <label class="reset-confirm-label" for="reset-confirm-input">Para confirmar, digite <code id="reset-confirm-token">ZERAR</code></label>
+    <input id="reset-confirm-input" class="reset-confirm-input" type="text" autocomplete="off" spellcheck="false">
+    <p class="reset-input-error" id="reset-input-error" role="alert" hidden>O texto digitado não corresponde à confirmação solicitada.</p>
+    <div class="dialog-actions">
+      <button class="button button-quiet" id="reset-cancel-button" type="button">Cancelar</button>
+      <button class="button button-danger" id="reset-confirm-button" type="button">Confirmar reset</button>
+    </div>
+  </dialog>
+
+  <dialog id="update-dialog" class="update-dialog" aria-labelledby="update-dialog-title">
+    <div class="update-dialog-mark" aria-hidden="true">↻</div>
+    <p class="eyebrow">ATUALIZAÇÃO DO SISTEMA</p>
+    <h2 id="update-dialog-title">Aplicar a atualização?</h2>
+    <p class="update-dialog-copy">O laboratório baixará a nova versão do GitHub, atualizará as imagens e poderá reiniciar todos os containers. O dashboard ficará indisponível por alguns instantes durante a atualização.</p>
+    <p class="update-dialog-warning">Notebooks, bancos de dados, modelos e outros dados guardados nos volumes serão preservados. A operação exige uma conexão com o GitHub e pode baixar vários gigabytes.</p>
+    <label class="reset-confirm-label" for="update-confirm-input">Para confirmar, digite <code>ATUALIZAR LABORATÓRIO</code></label>
+    <input id="update-confirm-input" class="reset-confirm-input" type="text" autocomplete="off" spellcheck="false">
+    <p class="reset-input-error" id="update-input-error" role="alert" hidden>O texto digitado não corresponde à confirmação solicitada.</p>
+    <div class="dialog-actions">
+      <button class="button button-quiet" id="update-cancel-button" type="button">Cancelar</button>
+      <button class="button button-update" id="update-confirm-button" type="button" disabled>Aplicar atualização</button>
+    </div>
+  </dialog>
+
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+  <script id="settings-data" type="application/json">{{ reset_services | tojson }}</script>
+</body>
+</html>

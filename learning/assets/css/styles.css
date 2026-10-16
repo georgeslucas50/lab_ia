@@ -1,0 +1,433 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #111; /* Fundo escuro atrás do vídeo transparente */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Removido o overflow: hidden para permitir rolagem se o conteúdo crescer no celular */
+}
+
+#bg-video, #bg-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    object-fit: cover; /* Garante que o conteúdo preencha a tela sem distorcer */
+    pointer-events: none; /* Garante que não atrapalhe os cliques no site */
+    transition: opacity 0.8s ease-in-out; /* Transição suave e luxuosa (crossfade) */
+}
+
+#bg-video {
+    opacity: 0.15; /* Inicia visível e bem transparente na tela principal */
+}
+
+#bg-image {
+    opacity: 0; /* Inicia invisível, pois o vídeo está tocando */
+}
+
+.content {
+    position: relative;
+    z-index: 1;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* min-height ao invés de height fixo para ser mais responsivo */
+    padding: 20px; /* Evita que o texto encoste nas bordas em telas menores */
+    box-sizing: border-box;
+    text-align: center;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.content h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 4rem); /* Responsivo: diminui a fonte no celular e aumenta no desktop */
+    line-height: 1.2;
+}
+
+.content h2 {
+    margin: 10px 0 0 0;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-weight: 300;
+    color: #ddd;
+}
+
+/* Botões Flutuantes de Navegação */
+#next-slide-btn, #prev-slide-btn {
+    position: fixed;
+    bottom: 15px;
+    padding: 12px 24px;
+    background-color: #1a1a1a; /* Fundo escuro e sólido para cobrir qualquer imagem */
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px; /* Formato de pílula */
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100; /* Garante que fique acima de tudo */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+#next-slide-btn {
+    right: 15px; /* Posição para tampar a marca d'água no canto direito */
+}
+
+#prev-slide-btn {
+    left: 15px; /* Posição no canto esquerdo */
+}
+
+#next-slide-btn:hover, #prev-slide-btn:hover {
+    background-color: #333;
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-3px) scale(1.05); /* Pequeno efeito visual flutuante */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.9);
+}
+
+/* Transições e Estilos de Slide */
+.slide {
+    display: none;
+    animation: fadeIn 0.6s ease-out forwards;
+    width: 100%;
+    max-width: 1200px; /* Alargado para dar mais espaço ao texto e evitar quebras de linha */
+}
+
+.slide.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-title {
+    margin-bottom: 40px;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    align-self: flex-start; /* Alinha o título à margem esquerda */
+    text-align: left;
+    width: 100%;
+}
+
+.slide-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.slide-list li {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    background: rgba(0, 0, 0, 0.5);
+    margin: 15px 0;
+    padding: 20px 30px;
+    border-radius: 12px;
+    border-left: 5px solid #00a8ff; /* Detalhe azul para dar um toque moderno */
+    backdrop-filter: blur(5px);
+    text-align: left;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.slide-list li:hover {
+    transform: translateX(10px);
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.center-title {
+    align-self: center !important;
+    text-align: center !important;
+}
+
+/* Layout com Imagem Lateral */
+.split-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 40px;
+}
+
+.split-left {
+    flex: 0 0 28%; /* Aumentado levemente para balancear com a altura do bloco de textos */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Garante alinhamento vertical perfeito */
+}
+
+.split-right {
+    flex: 1;
+}
+
+.side-image {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Responsividade do Layout com Imagem */
+@media (max-width: 768px) {
+    .split-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .split-left {
+        flex: 1;
+        margin-bottom: 20px;
+    }
+    .side-image {
+        max-width: 150px; /* Reduz tamanho no celular */
+    }
+}
+
+/* Fluxograma Horizontal */
+.flowchart-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.flow-node-h {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #00a8ff;
+    border-radius: 8px;
+    padding: 15px 20px; 
+    font-size: clamp(0.85rem, 1.5vw, 1rem); 
+    font-weight: 500;
+    text-align: center;
+    flex: 1 1 200px;
+    max-width: 250px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.flow-node-h:hover {
+    transform: scale(1.05);
+    background: rgba(0, 0, 0, 0.8);
+    border-color: #fff;
+}
+
+.flow-arrow-right {
+    color: #00a8ff;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 900px) {
+    .flowchart-horizontal {
+        flex-direction: column;
+    }
+    .flow-arrow-right {
+        transform: rotate(90deg); /* Vira seta pra baixo no celular */
+    }
+    .flow-node-h {
+        max-width: 80%;
+        min-height: 60px;
+    }
+}
+
+/* Roadmap Timeline */
+.roadmap-container {
+    width: 100%;
+    max-width: 1000px;
+    padding: 0;
+    position: relative;
+    /* Removido max-height e barra de rolagem interna */
+}
+
+.roadmap-container::-webkit-scrollbar {
+    width: 8px;
+}
+.roadmap-container::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+}
+.roadmap-container::-webkit-scrollbar-thumb {
+    background: #00a8ff;
+    border-radius: 4px;
+}
+
+.timeline {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Linha central */
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    background-color: rgba(0, 168, 255, 0.3);
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -2px;
+    border-radius: 2px;
+}
+
+/* Efeito de Foco (Destaque) */
+/* Quando o mouse entra na timeline inteira, esmaece e encolhe todos os itens */
+.timeline:hover .timeline-item {
+    opacity: 0.3;
+    transform: scale(0.95);
+    transition: all 0.4s ease;
+}
+
+/* O item que o mouse está em cima volta ao normal/cresce */
+.timeline:hover .timeline-item:hover {
+    opacity: 1;
+    transform: scale(1);
+    z-index: 10;
+}
+
+.timeline-item {
+    padding: 2px 40px; 
+    position: relative;
+    background: inherit;
+    width: 50%;
+    box-sizing: border-box;
+    transition: all 0.4s ease;
+}
+
+/* Bolinha na linha central */
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: -12px;
+    background-color: #111;
+    border: 4px solid #00a8ff;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    z-index: 1;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.5);
+}
+
+.timeline-item.left {
+    left: 0;
+}
+
+.timeline-item.right {
+    left: 50%;
+}
+
+.timeline-item.right::after {
+    left: -12px;
+}
+
+.timeline-content {
+    padding: 6px 20px; /* Reduzido o espaço interno da caixa */
+    background: rgba(0, 0, 0, 0.6);
+    position: relative;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 168, 255, 0.4);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.timeline-item:hover .timeline-content {
+    transform: scale(1.35); /* Aumentado o zoom para 135% garantindo ótima legibilidade no texto */
+    border-color: #00a8ff;
+    background: rgba(0, 0, 0, 0.95);
+    box-shadow: 0 10px 30px rgba(0, 168, 255, 0.4);
+}
+
+.timeline-item:hover::after {
+    background-color: #00a8ff;
+    box-shadow: 0 0 20px #00a8ff;
+}
+
+.timeline-date {
+    font-weight: bold;
+    color: #00a8ff;
+    font-size: clamp(0.75rem, 1.5vw, 0.95rem); /* Reduz fonte para evitar quebra de linha em telas pequenas */
+    margin-bottom: 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.timeline-text {
+    color: #fff;
+    font-size: clamp(0.7rem, 1.5vw, 0.85rem); /* Reduz fonte */
+    line-height: 1.1;
+}
+
+/* Responsividade Roadmap */
+@media screen and (max-width: 768px) {
+    .timeline::after {
+        left: 31px;
+    }
+    .timeline-item {
+        width: 100%;
+        padding-left: 70px;
+        padding-right: 25px;
+    }
+    .timeline-item.right {
+        left: 0%;
+    }
+    .timeline-item.left::after, .timeline-item.right::after {
+        left: 19px;
+    }
+}
+
+/* Botão Final */
+.final-btn {
+    display: inline-block;
+    padding: 20px 60px;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: #fff;
+    background: rgba(0, 168, 255, 0.2);
+    border: 3px solid #00a8ff;
+    border-radius: 50px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(0, 168, 255, 0.5), inset 0 0 20px rgba(0, 168, 255, 0.3);
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.final-btn:hover {
+    background: #00a8ff;
+    color: #111;
+    box-shadow: 0 0 40px rgba(0, 168, 255, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.5);
+    transform: translateY(-5px) scale(1.05);
+}

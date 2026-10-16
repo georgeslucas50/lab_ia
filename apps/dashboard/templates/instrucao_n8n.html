@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual - n8n</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        #bg-video { position: fixed; top: 0; left: 0; min-width: 100%; min-height: 100%; z-index: -1; object-fit: cover; opacity: 0.2; }
+        
+        .header { position: sticky; top: 0; padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .back-btn { background: rgba(30,41,59,0.8); border: 1px solid #475569; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: background 0.3s; }
+        .back-btn:hover { background: #3b82f6; }
+
+        .container { max-width: 900px; margin: 40px auto; padding: 50px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        
+        h1 { color: #93c5fd; font-size: 2.5rem; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-top: 0; }
+        h2 { color: #60a5fa; margin-top: 40px; border-bottom: 1px solid #334155; padding-bottom: 5px; font-size: 1.8rem; }
+        p { font-size: 1.1rem; line-height: 1.7; }
+        ul, ol { font-size: 1.1rem; line-height: 1.7; margin-bottom: 20px; }
+        li { margin-bottom: 10px; }
+        
+        .highlight { background-color: rgba(37, 99, 235, 0.2); padding: 2px 6px; border-radius: 4px; color: #93c5fd; font-weight: bold; }
+        .code-block { background-color: #0f172a; padding: 20px; border-radius: 8px; font-family: monospace; color: #a7f3d0; margin: 20px 0; border: 1px solid #334155; white-space: pre-wrap; word-break: break-all; }
+        
+        strong { color: #f8fafc; }
+        
+        .footer-nav { margin-top: 50px; text-align: center; border-top: 1px solid #334155; padding-top: 20px; }
+        .footer-nav a { display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; transition: background 0.3s; }
+        .footer-nav a:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop playsinline id="bg-video">
+        <source src="/static/media/EsCom.mp4" type="video/mp4">
+    </video>
+
+    <div class="header">
+        <h2 style="margin: 0; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">📚 Manual do n8n</h2>
+        <a href="/" class="back-btn">⬅️ Voltar à Tela Inicial</a>
+    </div>
+
+    <div class="container">
+        <h1>⚡ Introdução ao n8n</h1>
+        <p>O <strong>n8n</strong> é o cérebro orquestrador do nosso Laboratório. Ele é uma ferramenta visual avançada que permite criar automações complexas e agentes de inteligência artificial ligando blocos lógicos uns aos outros, sem escrever código.</p>
+        
+        <ul>
+            <li><strong>No-Code / Low-Code:</strong> Você não precisa programar. Tudo é feito arrastando e conectando blocos lógicos na tela.</li>
+            <li><strong>Gatilhos (Triggers):</strong> Todo fluxo começa com um gatilho. Pode ser o recebimento de um e-mail, uma chamada de webhook, um formulário preenchido ou até mesmo um agendamento de hora em hora.</li>
+            <li><strong>Integração Ampla:</strong> Ele se conecta nativamente aos nossos modelos de IA locais (LiteLLM/Ollama), bancos de dados (Postgres, Qdrant) e milhares de ferramentas externas (Tika, Scraping, APIs do exército).</li>
+        </ul>
+
+        <h2>🧩 Como funcionam os Nodes (Nós)</h2>
+        <p>Um fluxo (workflow) de trabalho é inteiramente composto por vários <strong>Nodes</strong>. Cada Node executa uma ação ou processamento específico e isolado.</p>
+        <ol>
+            <li>Ao abrir o painel do n8n, você verá uma tela em branco chamada <em>canvas</em>.</li>
+            <li>Clicando no sinal de <span class="highlight">+</span>, você adiciona novos Nodes de acordo com a função desejada.</li>
+            <li>Você liga a saída (o círculo à direita) de um Node à entrada (círculo à esquerda) do próximo Node.</li>
+            <li>Os dados (geralmente estruturados em JSON) fluem através dessa linha, sendo processados etapa por etapa, de maneira muito similar a uma linha de montagem de fábrica.</li>
+        </ol>
+
+        <h2>🤖 Conectando a Inteligência Artificial</h2>
+        <p>No laboratório, nossos LLMs (Modelos de Linguagem de Grande Porte) rodam localmente e 100% privados na GPU via Ollama, protegidos e roteados pelo Gateway LiteLLM.</p>
+        <p>Para embutir capacidades de Inteligência Artificial dentro do seu workflow no n8n, você deve seguir estes passos fundamentais:</p>
+        <ul>
+            <li>No canvas, adicione um Node chamado <strong>"Basic LLM Chain"</strong> ou <strong>"AI Agent"</strong>, que ficam na aba de Advanced AI.</li>
+            <li>Conecte a ele um Node de Modelo de Linguagem (ex: <em>Chat OpenAI</em>).</li>
+            <li>Na configuração do modelo, selecione a credencial pré-configurada que aponta para o nosso LiteLLM local (ex: <code>http://litellm:4000/v1</code>).</li>
+            <li>No campo de Prompt, defina as instruções claras do que a IA deve analisar. Quando o fluxo de execução chegar ali, a IA processará o texto, analisará a requisição e devolverá o resultado estruturado para o próximo Node.</li>
+        </ul>
+
+        <h2>🎯 O Primeiro Exercício Prático</h2>
+        <p>A teoria só ganha sentido na prática. Quando você iniciar a Área de Projetos, o seu primeiro desafio será criar uma interface de comunicação máquina-a-máquina.</p>
+        
+        <p>Seu objetivo será criar um fluxo que é acionado via <strong>Webhook</strong>. Ele deve operar da seguinte forma:</p>
+        <ul>
+            <li>O fluxo fica escutando uma porta de rede aguardando chamadas.</li>
+            <li>O webhook receberá uma requisição POST contendo um JSON. Exemplo: <code>{"pergunta": "Qual a capital do Brasil?"}</code>.</li>
+            <li>Esse JSON é passado para um Node de Inteligência Artificial, que fará a compreensão da pergunta.</li>
+            <li>O fluxo processará a saída da IA e devolverá a resposta final estruturada (HTTP 200 OK) de volta para o cliente que chamou o Webhook.</li>
+        </ul>
+        
+        <div class="footer-nav">
+            <a href="/">Ir para a Tela Principal e Acessar o n8n</a>
+        </div>
+    </div>
+</body>
+</html>

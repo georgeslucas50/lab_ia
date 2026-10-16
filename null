@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI & Agent Platform - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease-in-out;
+        }
+        .glass-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-sky-500/10 border border-sky-500/20 rounded-xl text-2xl">
+                    🎛️
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-wide">GenAI & Agent Platform</h1>
+                    <p class="text-xs text-gray-400">Dashboard Central de Serviços e Visibilidade da Infraestrutura (17 Containers)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="checkHealth()" class="px-3 py-1.5 text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg transition-colors flex items-center gap-2">
+                    <span id="sync-icon" class="inline-block">🔄</span> Atualizar Status
+                </button>
+                <div class="px-3 py-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Ativo (WSL2 / GPU)
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-10">
+
+        
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 border-b border-gray-800/80 pb-2">
+                <h2 class="text-lg font-semibold text-sky-400 tracking-wide">Telas &amp; Interfaces de Usuário</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 font-mono">4</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                
+                <div onclick="openModal('open-webui')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">💬</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Open WebUI</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 3000</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-open-webui" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Seu &#39;ChatGPT&#39; privado local. Permite conversar com os modelos de linguagem do Ollama, fazer upload de documentos para RAG e interagir via voz (transcrição STT e síntese TTS).
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('n8n')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">⚡</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">n8n Orchestrator</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 5678</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-n8n" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Plataforma visual de automação de workflows e orquestração de agentes. Conecta modelos de IA a centenas de APIs externas, bancos de dados e webhooks.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('flowise')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🧩</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Flowise AI</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 3001</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-flowise" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Construtor no-code/low-code no estilo LangChain. Permite criar robôs de IA, pipelines de RAG e agentes autônomos arrastando e soltando blocos visuais.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('portainer')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🐳</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Portainer CE</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 9000</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-portainer" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Gerenciador gráfico completo do Docker. Exibe métricas de uso de CPU/RAM, permite visualizar logs dos containers em tempo real e abrir terminal interativo.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 border-b border-gray-800/80 pb-2">
+                <h2 class="text-lg font-semibold text-sky-400 tracking-wide">AI Gateway &amp; Observabilidade</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 font-mono">2</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                
+                <div onclick="openModal('litellm')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🚦</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">LiteLLM Proxy</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 4000</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-litellm" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Gateway de IA unificado compatível com a API da OpenAI (/v1). Gerencia chaves de API, limites de consumo, cache semântico no Redis e envia traces para o Phoenix.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('phoenix')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">📊</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Arize Phoenix</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 6006</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-phoenix" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Plataforma de observabilidade LLMOps e OpenTelemetry. Monitora a latência das respostas, fluxo de execução dos agentes e avaliação da precisão do RAG.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 border-b border-gray-800/80 pb-2">
+                <h2 class="text-lg font-semibold text-sky-400 tracking-wide">Cérebro de IA &amp; Voz</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 font-mono">3</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                
+                <div onclick="openModal('ollama')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🧠</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Ollama LLM Engine</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 11434</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-ollama" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            O motor principal de inteligência artificial rodando 100% na placa de vídeo NVIDIA RTX 4060. Executa os modelos de linguagem (Llama 3.2, Qwen) e Embeddings.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('whisper-stt')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🎙️</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Faster-Whisper STT</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 8001</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-whisper-stt" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Servidor de transcrição de voz (Speech-to-Text). Converte áudio e comandos de voz em texto usando CPU int8 otimizada sem consumir a VRAM da GPU.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('openedai-tts')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🔊</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">OpenEDAI Speech TTS</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 8002</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-openedai-tts" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Servidor de síntese de voz neural (Text-to-Speech). Converte as respostas de texto da IA em fala natural usando vozes Piper em CPU.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 border-b border-gray-800/80 pb-2">
+                <h2 class="text-lg font-semibold text-sky-400 tracking-wide">Ferramentas Agênticas &amp; OCR</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 font-mono">3</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                
+                <div onclick="openModal('python-mcp')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🛠️</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Python MCP Server</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 8000</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-python-mcp" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Servidor customizado FastMCP + FastAPI. Fornece ferramentas agênticas via SSE (/sse) como OCR de documentos no Tika, Web Scraping e cache no Redis.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('tika')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">📄</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Apache Tika OCR</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 9998</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-tika" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Servidor de extração de texto e OCR Tesseract. Extrai conteúdo limpo de PDFs pesados, escaneados e arquivos de imagem para uso no RAG.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('browserless')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🌐</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Browserless Scraping</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 3002</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-browserless" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Navegador Chromium Headless. Permite que os agentes simulem navegação humana real, cliquem em botões e extraiam dados de páginas dinâmicas com JS.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 border-b border-gray-800/80 pb-2">
+                <h2 class="text-lg font-semibold text-sky-400 tracking-wide">Bancos de Dados &amp; Memórias</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 font-mono">4</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                
+                <div onclick="openModal('qdrant')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">📚</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Qdrant Vector DB</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 6333</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-qdrant" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Banco de dados vetorial de alta velocidade. Armazena e pesquisa vetores de embeddings para busca semântica em arquivos e PDFs (Vector RAG).
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('neo4j')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🕸️</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Neo4j Graph DB</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 7474</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-neo4j" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Banco de dados em grafo. Representa entidades, conceitos e relacionamentos complexos criando mapas mentais para raciocínio avançado (GraphRAG).
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('redis')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">⚡</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">Redis Cache</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 6379</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-redis" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Memória in-memory de altíssima velocidade. Armazena o cache de respostas de IA no LiteLLM e estados de curto prazo dos agentes do n8n e Flowise.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+                <div onclick="openModal('postgres')" 
+                     class="glass-card rounded-2xl p-5 cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl p-2 bg-gray-800/60 rounded-xl group-hover:scale-110 transition-transform">🗄️</span>
+                                <div>
+                                    <h3 class="font-semibold text-white group-hover:text-sky-300 transition-colors">PostgreSQL DB</h3>
+                                    <p class="text-xs font-mono text-gray-400">Porta: 5432</p>
+                                </div>
+                            </div>
+
+                            <!-- Badge de Status -->
+                            <span id="badge-postgres" class="status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            Cofre relacional principal. Armazena os 5 bancos de dados da infraestrutura (litellm_db, n8n_db, flowise_db, openwebui_db, phoenix_db).
+                        </p>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                        <span>Clique para detalhes</span>
+                        <span class="group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+
+    </main>
+
+    <!-- Modal Detalhes do Container -->
+    <div id="service-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+        <div class="glass-modal w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-6 transform transition-all">
+            
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between border-b border-gray-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <span id="modal-icon" class="text-4xl p-2.5 bg-gray-800/80 rounded-2xl"></span>
+                    <div>
+                        <h3 id="modal-title" class="text-xl font-bold text-white"></h3>
+                        <p id="modal-container-name" class="text-xs font-mono text-gray-400"></p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition-colors text-xl font-bold">✕</button>
+            </div>
+
+            <!-- Status Badge no Modal -->
+            <div class="flex items-center justify-between px-4 py-2.5 bg-gray-900/60 rounded-xl border border-gray-800">
+                <span class="text-xs font-medium text-gray-400">Status em Tempo Real:</span>
+                <span id="modal-status-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> CONTAINER ATIVO
+                </span>
+            </div>
+
+            <!-- Descrição (Por que este container existe) -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold text-sky-400 uppercase tracking-wider">Por que este container existe?</h4>
+                <p id="modal-description" class="text-sm text-gray-300 leading-relaxed bg-gray-900/40 p-4 rounded-xl border border-gray-800/60"></p>
+            </div>
+
+            <!-- Informações Técnicas de Rede -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="p-3 bg-gray-900/60 rounded-xl border border-gray-800">
+                    <span class="text-gray-400 block mb-1">Porta Windows (Host):</span>
+                    <span id="modal-port" class="font-mono text-white font-semibold"></span>
+                </div>
+                <div class="p-3 bg-gray-900/60 rounded-xl border border-gray-800">
+                    <span class="text-gray-400 block mb-1">Rede Interna Docker:</span>
+                    <span id="modal-internal-url" class="font-mono text-sky-300 font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Actions / Botão Acessar -->
+            <div class="pt-4 border-t border-gray-800 flex items-center justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2.5 text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl transition-colors">
+                    Fechar
+                </button>
+
+                <a id="modal-access-btn" href="#" target="_blank" 
+                   class="px-5 py-2.5 text-xs font-bold bg-sky-500 hover:bg-sky-400 text-white rounded-xl shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2">
+                    🚀 Acessar Interface
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Interação JS -->
+    <script>
+        const servicesData = [{"category": "Telas \u0026 Interfaces de Usu\u00e1rio", "check_url": "http://open-webui:8080/health", "description": "Seu \u0027ChatGPT\u0027 privado local. Permite conversar com os modelos de linguagem do Ollama, fazer upload de documentos para RAG e interagir via voz (transcri\u00e7\u00e3o STT e s\u00edntese TTS).", "has_ui": true, "icon": "\ud83d\udcac", "id": "open-webui", "internal_url": "http://open-webui:8080", "name": "Open WebUI", "port": 3000, "url": "http://localhost:3000"}, {"category": "Telas \u0026 Interfaces de Usu\u00e1rio", "check_url": "http://n8n:5678/healthz", "description": "Plataforma visual de automa\u00e7\u00e3o de workflows e orquestra\u00e7\u00e3o de agentes. Conecta modelos de IA a centenas de APIs externas, bancos de dados e webhooks.", "has_ui": true, "icon": "\u26a1", "id": "n8n", "internal_url": "http://n8n:5678", "name": "n8n Orchestrator", "port": 5678, "url": "http://localhost:5678"}, {"category": "Telas \u0026 Interfaces de Usu\u00e1rio", "check_url": "http://flowise:3000/", "description": "Construtor no-code/low-code no estilo LangChain. Permite criar rob\u00f4s de IA, pipelines de RAG e agentes aut\u00f4nomos arrastando e soltando blocos visuais.", "has_ui": true, "icon": "\ud83e\udde9", "id": "flowise", "internal_url": "http://flowise:3000", "name": "Flowise AI", "port": 3001, "url": "http://localhost:3001"}, {"category": "Telas \u0026 Interfaces de Usu\u00e1rio", "check_url": "http://portainer:9000/", "description": "Gerenciador gr\u00e1fico completo do Docker. Exibe m\u00e9tricas de uso de CPU/RAM, permite visualizar logs dos containers em tempo real e abrir terminal interativo.", "has_ui": true, "icon": "\ud83d\udc33", "id": "portainer", "internal_url": "http://portainer:9000", "name": "Portainer CE", "port": 9000, "url": "http://localhost:9000"}, {"category": "AI Gateway \u0026 Observabilidade", "check_url": "http://litellm:4000/health/liveliness", "description": "Gateway de IA unificado compat\u00edvel com a API da OpenAI (/v1). Gerencia chaves de API, limites de consumo, cache sem\u00e2ntico no Redis e envia traces para o Phoenix.", "has_ui": true, "icon": "\ud83d\udea6", "id": "litellm", "internal_url": "http://litellm:4000", "name": "LiteLLM Proxy", "port": 4000, "url": "http://localhost:4000"}, {"category": "AI Gateway \u0026 Observabilidade", "check_url": "http://phoenix:6006/", "description": "Plataforma de observabilidade LLMOps e OpenTelemetry. Monitora a lat\u00eancia das respostas, fluxo de execu\u00e7\u00e3o dos agentes e avalia\u00e7\u00e3o da precis\u00e3o do RAG.", "has_ui": true, "icon": "\ud83d\udcca", "id": "phoenix", "internal_url": "http://phoenix:6006", "name": "Arize Phoenix", "port": 6006, "url": "http://localhost:6006"}, {"category": "C\u00e9rebro de IA \u0026 Voz", "check_url": "http://ollama:11434/", "description": "O motor principal de intelig\u00eancia artificial rodando 100% na placa de v\u00eddeo NVIDIA RTX 4060. Executa os modelos de linguagem (Llama 3.2, Qwen) e Embeddings.", "has_ui": false, "icon": "\ud83e\udde0", "id": "ollama", "internal_url": "http://ollama:11434", "name": "Ollama LLM Engine", "port": 11434, "url": "http://localhost:11434"}, {"category": "C\u00e9rebro de IA \u0026 Voz", "check_url": "http://whisper-stt:8000/health", "description": "Servidor de transcri\u00e7\u00e3o de voz (Speech-to-Text). Converte \u00e1udio e comandos de voz em texto usando CPU int8 otimizada sem consumir a VRAM da GPU.", "has_ui": false, "icon": "\ud83c\udf99\ufe0f", "id": "whisper-stt", "internal_url": "http://whisper-stt:8000", "name": "Faster-Whisper STT", "port": 8001, "url": "http://localhost:8001/docs"}, {"category": "C\u00e9rebro de IA \u0026 Voz", "check_url": "http://openedai-tts:8000/health", "description": "Servidor de s\u00edntese de voz neural (Text-to-Speech). Converte as respostas de texto da IA em fala natural usando vozes Piper em CPU.", "has_ui": false, "icon": "\ud83d\udd0a", "id": "openedai-tts", "internal_url": "http://openedai-tts:8000", "name": "OpenEDAI Speech TTS", "port": 8002, "url": "http://localhost:8002/docs"}, {"category": "Ferramentas Ag\u00eanticas \u0026 OCR", "check_url": "http://python-mcp:8000/health", "description": "Servidor customizado FastMCP + FastAPI. Fornece ferramentas ag\u00eanticas via SSE (/sse) como OCR de documentos no Tika, Web Scraping e cache no Redis.", "has_ui": true, "icon": "\ud83d\udee0\ufe0f", "id": "python-mcp", "internal_url": "http://python-mcp:8000", "name": "Python MCP Server", "port": 8000, "url": "http://localhost:8000/docs"}, {"category": "Ferramentas Ag\u00eanticas \u0026 OCR", "check_url": "http://tika:9998/version", "description": "Servidor de extra\u00e7\u00e3o de texto e OCR Tesseract. Extrai conte\u00fado limpo de PDFs pesados, escaneados e arquivos de imagem para uso no RAG.", "has_ui": false, "icon": "\ud83d\udcc4", "id": "tika", "internal_url": "http://tika:9998", "name": "Apache Tika OCR", "port": 9998, "url": "http://localhost:9998"}, {"category": "Ferramentas Ag\u00eanticas \u0026 OCR", "check_url": "http://browserless:3000/pressure", "description": "Navegador Chromium Headless. Permite que os agentes simulem navega\u00e7\u00e3o humana real, cliquem em bot\u00f5es e extraiam dados de p\u00e1ginas din\u00e2micas com JS.", "has_ui": false, "icon": "\ud83c\udf10", "id": "browserless", "internal_url": "http://browserless:3000", "name": "Browserless Scraping", "port": 3002, "url": "http://localhost:3002"}, {"category": "Bancos de Dados \u0026 Mem\u00f3rias", "check_url": "http://qdrant:6333/readyz", "description": "Banco de dados vetorial de alta velocidade. Armazena e pesquisa vetores de embeddings para busca sem\u00e2ntica em arquivos e PDFs (Vector RAG).", "has_ui": true, "icon": "\ud83d\udcda", "id": "qdrant", "internal_url": "http://qdrant:6333", "name": "Qdrant Vector DB", "port": 6333, "url": "http://localhost:6333/dashboard"}, {"category": "Bancos de Dados \u0026 Mem\u00f3rias", "check_url": "http://neo4j:7474/", "description": "Banco de dados em grafo. Representa entidades, conceitos e relacionamentos complexos criando mapas mentais para racioc\u00ednio avan\u00e7ado (GraphRAG).", "has_ui": true, "icon": "\ud83d\udd78\ufe0f", "id": "neo4j", "internal_url": "bolt://neo4j:7687", "name": "Neo4j Graph DB", "port": 7474, "url": "http://localhost:7474"}, {"category": "Bancos de Dados \u0026 Mem\u00f3rias", "check_url": "http://redis:6379", "description": "Mem\u00f3ria in-memory de alt\u00edssima velocidade. Armazena o cache de respostas de IA no LiteLLM e estados de curto prazo dos agentes do n8n e Flowise.", "has_ui": false, "icon": "\u26a1", "id": "redis", "internal_url": "redis:6379", "name": "Redis Cache", "port": 6379, "url": "http://localhost:6379"}, {"category": "Bancos de Dados \u0026 Mem\u00f3rias", "check_url": "http://postgres:5432", "description": "Cofre relacional principal. Armazena os 5 bancos de dados da infraestrutura (litellm_db, n8n_db, flowise_db, openwebui_db, phoenix_db).", "has_ui": false, "icon": "\ud83d\uddc4\ufe0f", "id": "postgres", "internal_url": "postgres:5432", "name": "PostgreSQL DB", "port": 5432, "url": "http://localhost:5432"}];
+
+        function openModal(serviceId) {
+            const s = servicesData.find(item => item.id === serviceId);
+            if (!s) return;
+
+            document.getElementById('modal-icon').innerText = s.icon;
+            document.getElementById('modal-title').innerText = s.name;
+            document.getElementById('modal-container-name').innerText = 'Container: ' + s.id;
+            document.getElementById('modal-description').innerText = s.description;
+            document.getElementById('modal-port').innerText = s.port;
+            document.getElementById('modal-internal-url').innerText = s.internal_url;
+
+            const accessBtn = document.getElementById('modal-access-btn');
+            if (s.has_ui) {
+                accessBtn.href = s.url;
+                accessBtn.classList.remove('hidden');
+            } else {
+                accessBtn.classList.add('hidden');
+            }
+
+            document.getElementById('service-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('service-modal').classList.add('hidden');
+        }
+
+        async function checkHealth() {
+            const syncIcon = document.getElementById('sync-icon');
+            syncIcon.classList.add('animate-spin');
+
+            try {
+                const res = await fetch('/api/status');
+                const statusMap = await res.json();
+                
+                for (const [id, status] of Object.entries(statusMap)) {
+                    const badge = document.getElementById(`badge-${id}`);
+                    if (badge) {
+                        if (status === 'online') {
+                            badge.className = 'status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1';
+                            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ATIVO';
+                        } else {
+                            badge.className = 'status-badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1';
+                            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> INATIVO';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao verificar status dos serviços", e);
+            } finally {
+                syncIcon.classList.remove('animate-spin');
+            }
+        }
+
+        // Checagem inicial
+        checkHealth();
+    </script>
+</body>
+</html>

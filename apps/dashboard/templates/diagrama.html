@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitetura de Rede - EsCom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #0f172a; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        #mynetwork { width: 100vw; height: 100vh; }
+        .vis-network { outline: none; }
+        .vis-tooltip {
+            position: absolute;
+            visibility: hidden;
+            padding: 10px;
+            white-space: nowrap;
+            font-family: verdana;
+            font-size: 14px;
+            color: #fff;
+            background-color: rgba(15, 23, 42, 0.9);
+            border-radius: 8px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Overlay -->
+    <div class="absolute top-0 left-0 right-0 z-50 p-4 pointer-events-none flex justify-between items-center">
+        <div class="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-xl p-4 pointer-events-auto shadow-xl">
+            <h1 class="text-xl font-bold text-white tracking-wide">EsCom - Seção Delta</h1>
+            <p class="text-xs text-gray-400">Diagrama de Arquitetura de Inteligência Artificial</p>
+        </div>
+        <a href="/dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 transition-colors pointer-events-auto flex items-center gap-2">
+            <span>⬅️</span> Voltar ao Dashboard
+        </a>
+    </div>
+
+    <!-- Container do Grafo -->
+    <div id="mynetwork"></div>
+
+    <script type="text/javascript">
+        // Criação dos Nós (Nodes) a partir do backend
+        var nodes = new vis.DataSet([
+            { 
+                id: 'aluno', 
+                label: '👨‍💻\nAluno', 
+                shape: 'circle',
+                color: { background: '#3b82f6', border: '#2563eb' },
+                font: { color: 'white', size: 16, face: 'Inter' },
+                title: 'O usuário interagindo com a plataforma'
+            },
+            {% for s in services %}
+            { 
+                id: '{{ s.id }}', 
+                label: '{{ s.icon }}\n{{ s.name }}', 
+                shape: 'box',
+                color: { 
+                    background: '#1e293b', 
+                    border: '#334155',
+                    highlight: { background: '#334155', border: '#475569' },
+                    hover: { background: '#334155', border: '#475569' }
+                },
+                font: { color: '#e2e8f0', size: 14, face: 'Inter', multi: 'html' },
+                title: '{{ s.name }}\n\n{{ s.description }}',
+                margin: 10,
+                borderWidth: 2,
+                shadow: true,
+                level: {% if s.category == 'Telas & Interfaces de Usuário' or s.category == 'Notebooks & Desenvolvimento' %}2{% elif s.category == 'AI Gateway & Observabilidade' %}3{% elif s.category == 'Cérebro de IA & Voz' %}4{% else %}5{% endif %}
+            },
+            {% endfor %}
+        ]);
+
+        // Atualização do nó do aluno com nível hierárquico 1
+        nodes.update({id: 'aluno', level: 1});
+
+        // Definição das Arestas (Edges/Conexões)
+        var edges = new vis.DataSet([
+            // Aluno -> Interfaces UI
+            { from: 'aluno', to: 'open-webui', color: { color: '#64748b' }, arrows: 'to' },
+            { from: 'aluno', to: 'n8n', color: { color: '#64748b' }, arrows: 'to' },
+            { from: 'aluno', to: 'flowise', color: { color: '#64748b' }, arrows: 'to' },
+            { from: 'aluno', to: 'portainer', color: { color: '#64748b' }, arrows: 'to' },
+            { from: 'aluno', to: 'jupyter', color: { color: '#64748b' }, arrows: 'to' },
+            
+            // Interfaces UI -> API Gateway (LiteLLM)
+            { from: 'open-webui', to: 'litellm', color: { color: '#10b981' }, arrows: 'to', label: 'API Call', font: {size: 10, color: '#94a3b8', align: 'horizontal'} },
+            { from: 'n8n', to: 'litellm', color: { color: '#10b981' }, arrows: 'to' },
+            { from: 'flowise', to: 'litellm', color: { color: '#10b981' }, arrows: 'to' },
+
+            // JupyterLab -> APIs e dados do laboratório
+            { from: 'jupyter', to: 'litellm', color: { color: '#10b981' }, arrows: 'to', label: 'OpenAI API', font: {size: 10, color: '#94a3b8'} },
+            { from: 'jupyter', to: 'ollama', color: { color: '#8b5cf6' }, arrows: 'to' },
+            { from: 'jupyter', to: 'python-mcp', color: { color: '#0ea5e9' }, arrows: 'to', label: 'MCP / Tools', font: {size: 10, color: '#94a3b8'} },
+            { from: 'jupyter', to: 'qdrant', color: { color: '#ec4899' }, arrows: 'to' },
+            { from: 'jupyter', to: 'neo4j', color: { color: '#ec4899' }, arrows: 'to' },
+            { from: 'jupyter', to: 'postgres', color: { color: '#334155' }, arrows: 'to' },
+            { from: 'jupyter', to: 'redis', color: { color: '#ef4444' }, arrows: 'to' },
+            
+            // LiteLLM Gateway -> Motores & Observabilidade
+            { from: 'litellm', to: 'ollama', color: { color: '#8b5cf6' }, arrows: 'to', label: 'LLM Inference', font: {size: 10, color: '#94a3b8'} },
+            { from: 'litellm', to: 'redis', color: { color: '#ef4444' }, arrows: 'to, from', label: 'Cache', font: {size: 10, color: '#94a3b8'} },
+            { from: 'litellm', to: 'phoenix', color: { color: '#f59e0b' }, arrows: 'to', label: 'Traces', font: {size: 10, color: '#94a3b8'}, dashes: true },
+            
+            // Open WebUI -> Serviços de Voz
+            { from: 'open-webui', to: 'whisper-stt', color: { color: '#3b82f6' }, arrows: 'to', dashes: true },
+            { from: 'open-webui', to: 'openedai-tts', color: { color: '#3b82f6' }, arrows: 'to', dashes: true },
+            
+            // N8N & Flowise -> Integrações (Bancos e MCP)
+            { from: 'n8n', to: 'qdrant', color: { color: '#ec4899' }, arrows: 'to, from' },
+            { from: 'n8n', to: 'neo4j', color: { color: '#ec4899' }, arrows: 'to, from' },
+            { from: 'n8n', to: 'python-mcp', color: { color: '#0ea5e9' }, arrows: 'to, from', label: 'Tools', font: {size: 10, color: '#94a3b8'} },
+            
+            { from: 'flowise', to: 'qdrant', color: { color: '#ec4899' }, arrows: 'to, from' },
+            { from: 'flowise', to: 'neo4j', color: { color: '#ec4899' }, arrows: 'to, from' },
+            { from: 'flowise', to: 'python-mcp', color: { color: '#0ea5e9' }, arrows: 'to, from' },
+            
+            // Python MCP -> Microsserviços
+            { from: 'python-mcp', to: 'tika', color: { color: '#6366f1' }, arrows: 'to' },
+            { from: 'python-mcp', to: 'browserless', color: { color: '#6366f1' }, arrows: 'to' },
+            
+            // Banco Central PostgreSQL (Conectado a todos os stateful)
+            { from: 'postgres', to: 'open-webui', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
+            { from: 'postgres', to: 'n8n', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
+            { from: 'postgres', to: 'flowise', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
+            { from: 'postgres', to: 'litellm', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
+            { from: 'postgres', to: 'phoenix', color: { color: '#334155' }, arrows: 'to, from', dashes: true }
+        ]);
+
+        var container = document.getElementById('mynetwork');
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        
+        var options = {
+            layout: {
+                hierarchical: {
+                    direction: 'UD', // Up-Down (De cima para baixo)
+                    sortMethod: 'directed',
+                    nodeSpacing: 250,
+                    levelSeparation: 150,
+                    treeSpacing: 200
+                }
+            },
+            physics: {
+                enabled: false // Desabilita a física para manter o organograma estático e legível
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 100,
+                zoomView: true,
+                dragView: true,
+                navigationButtons: true
+            }
+        };
+
+        var network = new vis.Network(container, data, options);
+    </script>
+</body>
+</html>

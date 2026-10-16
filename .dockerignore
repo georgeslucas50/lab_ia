@@ -1,0 +1,9 @@
+.env
+.env.*
+**
+!apps/
+!apps/jupyter/
+!apps/jupyter/**
+!learning/
+!learning/notebooks/
+!learning/notebooks/**

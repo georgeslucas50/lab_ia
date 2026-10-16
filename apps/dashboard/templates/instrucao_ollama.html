@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Completo - Ollama</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #e2e8f0; display: flex; height: 100vh; overflow: hidden; }
+        #bg-video { position: absolute; top: 0; left: 0; min-width: 100%; min-height: 100%; z-index: -1; object-fit: cover; opacity: 0.15; }
+        
+        /* Sidebar (Menu de Tópicos) */
+        .sidebar { width: 300px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-right: 1px solid rgba(255, 255, 255, 0.1); padding: 30px 20px; overflow-y: auto; flex-shrink: 0; z-index: 10; display: flex; flex-direction: column; }
+        .sidebar h3 { color: #93c5fd; margin-top: 0; margin-bottom: 25px; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .sidebar li { margin-bottom: 12px; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; font-size: 1.05rem; display: block; padding: 8px 12px; border-radius: 6px; transition: all 0.2s; border-left: 3px solid transparent; }
+        .sidebar a:hover, .sidebar a.active { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-left: 3px solid #38bdf8; }
+        
+        .back-btn { background: #2563eb; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center; margin-top: 30px; transition: background 0.3s; }
+        .back-btn:hover { background: #1d4ed8; }
+
+        /* Conteúdo Principal */
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 50px; position: relative; z-index: 1; scroll-behavior: smooth; }
+        .content-wrapper { max-width: 1000px; margin: 0 auto; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 50px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        
+        h1 { color: #93c5fd; font-size: 2.8rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-top: 0; }
+        h2 { color: #60a5fa; margin-top: 60px; border-bottom: 1px solid #334155; padding-bottom: 10px; font-size: 2rem; scroll-margin-top: 40px; }
+        h3 { color: #a7f3d0; font-size: 1.4rem; margin-top: 30px; }
+        p { font-size: 1.15rem; line-height: 1.8; color: #cbd5e1; }
+        ul, ol { font-size: 1.15rem; line-height: 1.8; color: #cbd5e1; margin-bottom: 20px; }
+        li { margin-bottom: 12px; }
+        
+        .code-block { background-color: #020617; padding: 20px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; color: #34d399; margin: 25px 0; border: 1px solid #1e293b; white-space: pre-wrap; word-break: break-all; font-size: 1.05rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .code-title { background: #1e293b; padding: 5px 15px; font-family: monospace; font-size: 0.9rem; color: #94a3b8; border-radius: 8px 8px 0 0; border: 1px solid #334155; border-bottom: none; display: inline-block; margin-bottom: -25px; position: relative; z-index: 1; }
+        
+        .highlight { background-color: rgba(37, 99, 235, 0.2); padding: 2px 6px; border-radius: 4px; color: #93c5fd; font-weight: bold; }
+        .warning { background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .warning p { margin: 0; color: #fde047; }
+        strong { color: #f8fafc; }
+        
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop playsinline id="bg-video">
+        <source src="/static/media/EsCom.mp4" type="video/mp4">
+    </video>
+
+    <!-- Menu Lateral -->
+    <div class="sidebar">
+        <h3>🧠 Menu de Tópicos</h3>
+        <ul>
+            <li><a href="#introducao">1. Introdução ao Motor</a></li>
+            <li><a href="#arquitetura">2. Arquitetura e VRAM (Hardware)</a></li>
+            <li><a href="#gerenciamento">3. Gestão Básica de Modelos</a></li>
+            <li><a href="#cli-avancado">4. CLI Avançado e Interação</a></li>
+            <li><a href="#modelfile">5. Compilação (Modelfile)</a></li>
+            <li><a href="#api-rest">6. Consumo via API REST HTTP</a></li>
+        </ul>
+        <a href="/" class="back-btn">⬅️ Voltar à Tela Inicial</a>
+    </div>
+
+    <!-- Conteúdo do Manual -->
+    <div class="main-content">
+        <div class="content-wrapper">
+            <h1>Manual Avançado: Ollama</h1>
+            <p>O <strong>Ollama</strong> é o coração do processamento cognitivo do laboratório da Seção Delta. Ele atua como o servidor responsável por extrair, carregar e executar Inferências sobre Modelos de Linguagem de Grande Porte (LLMs) puramente locais.</p>
+            
+            <!-- Seção 1 -->
+            <h2 id="introducao">1. Introdução ao Motor</h2>
+            <p>Ao contrário das APIs em nuvem (como OpenAI ou Anthropic), o Ollama foi concebido para rodar no metal da nossa máquina. Isso assegura <strong>Privacidade Total (Off-Grid)</strong>, onde nenhum dado sigiloso de inteligência trafega pela internet.</p>
+            <ul>
+                <li>Ele opera como um "Deamon" (Serviço de Fundo), recebendo requisições e retornando a geração de texto.</li>
+                <li>Não possui interface gráfica nativa. Operadores experientes o gerenciam inteiramente por Linha de Comando (CLI).</li>
+                <li>É capaz de operar dezenas de modelos abertos, de famílias como Llama (Meta), Qwen (Alibaba), Mistral e Gemma (Google).</li>
+            </ul>
+
+            <!-- Seção 2 -->
+            <h2 id="arquitetura">2. Arquitetura e VRAM (Hardware)</h2>
+            <div class="warning">
+                <p><strong>Atenção ao Hardware:</strong> O limite da inteligência artificial local não é ditado apenas pelo Processador (CPU), mas sim pela <strong>VRAM</strong> (Memória de Vídeo da Placa Gráfica).</p>
+            </div>
+            <p>O Ollama faz a carga dos modelos (que são gigantescas matrizes de pesos neurais) diretamente na placa NVIDIA RTX 4060 do laboratório. Se o modelo for maior que a VRAM disponível, o Ollama faz um <em>offload</em> (transbordo) para a memória RAM comum e para a CPU, o que reduz drasticamente a velocidade de resposta.</p>
+            
+            <h3>Entendendo o Tamanho (Parâmetros) e Quantização</h3>
+            <p>Quando pesquisamos modelos, sempre vemos números como <strong>3B</strong>, <strong>7B</strong> ou <strong>70B</strong>. Isso refere-se à quantidade de "Bilhões de Parâmetros".</p>
+            <ul>
+                <li><strong>7B a 8B:</strong> Ocupam cerca de 4 a 5 GB de VRAM. Excelentes para a nossa placa RTX 4060. Respondem instantaneamente.</li>
+                <li><strong>70B:</strong> Ocupam cerca de 40 GB de VRAM. São proibitivos para placas menores e forçam o processamento lento via CPU.</li>
+                <li><strong>Quantização (ex: Q4_K_M):</strong> O Ollama automaticamente comprime os pesos matemáticos dos modelos para que caibam na memória sem perda notável de raciocínio lógico.</li>
+            </ul>
+
+            <!-- Seção 3 -->
+            <h2 id="gerenciamento">3. Gestão Básica de Modelos</h2>
+            <p>Gerenciar os arquivos locais é fundamental. Você executa os comandos injetando ações no container Docker do Ollama.</p>
+
+            <h3>Listar Modelos na Memória</h3>
+            <p>Mostra tudo o que já está baixado e o tamanho real no disco.</p>
+            <div class="code-title">Terminal (WSL)</div>
+            <div class="code-block">docker exec -it ollama ollama list</div>
+
+            <h3>Baixar Novos Modelos (Pull)</h3>
+            <p>Baixa um modelo oficial do registro de modelos do Ollama. Arquivos grandes, requer boa internet temporariamente.</p>
+            <div class="code-title">Terminal (WSL)</div>
+            <div class="code-block">docker exec -it ollama ollama pull llama3.2
+docker exec -it ollama ollama pull qwen2.5:7b-instruct
+docker exec -it ollama ollama pull nomic-embed-text</div>
+
+            <h3>Apagar Modelos (RM)</h3>
+            <p>Exclui definitivamente um modelo. Essencial para manter o SSD do laboratório limpo.</p>
+            <div class="code-title">Terminal (WSL)</div>
+            <div class="code-block">docker exec -it ollama ollama rm mistral</div>
+
+            <h3>Ver Detalhes do Modelo (Show)</h3>
+            <p>Inspeciona os metadados do modelo, como a licença, o template de prompt e os parâmetros ocultos.</p>
+            <div class="code-title">Terminal (WSL)</div>
+            <div class="code-block">docker exec -it ollama ollama show llama3.2 --modelfile</div>
+
+            <!-- Seção 4 -->
+            <h2 id="cli-avancado">4. CLI Avançado e Interação</h2>
+            <p>Você pode abrir um chat isolado apenas no texto (terminal) sem depender da rede ou de interfaces gráficas. É a forma mais direta de medir o tempo de resposta bruto.</p>
+            
+            <div class="code-title">Modo Interativo</div>
+            <div class="code-block">docker exec -it ollama ollama run llama3.2</div>
+            
+            <p>Ao entrar nesse modo, você verá um cursor <code>>>></code>. Dicas de uso avançado:</p>
+            <ul>
+                <li><strong>Comandos internos:</strong> Digite <code>/?</code> para ver os comandos de atalho dentro do chat.</li>
+                <li><strong>Multilinhas:</strong> Para enviar um texto que possui quebras de linha (um código enorme ou documento), envolva a mensagem com três aspas: <code>""" Meu texto aqui """</code>.</li>
+                <li><strong>Sair:</strong> Digite <code>/bye</code> para encerrar o processo.</li>
+            </ul>
+
+            <!-- Seção 5 -->
+            <h2 id="modelfile">5. Compilação Customizada (Modelfile)</h2>
+            <p>O Ollama permite compilar clones especializados de modelos base. Se você não quer repetir "Haja como um especialista" a cada prompt, você injeta isso diretamente no DNA de um novo modelo usando um <strong>Modelfile</strong>.</p>
+            
+            <h3>Criando o Arquivo Modelfile</h3>
+            <p>No seu terminal, crie um arquivo chamado <code>Modelfile</code> com o seguinte conteúdo:</p>
+            <div class="code-title">Arquivo: Modelfile</div>
+            <div class="code-block">FROM llama3.2
+
+# 1. Comportamento Base (Cérebro do Agente)
+SYSTEM """Você é um analista de inteligência. Apenas responda em tópicos curtos. Não use jargões motivacionais."""
+
+# 2. Parâmetros de Geração (Matemática Pura)
+PARAMETER temperature 0.2      # Quanto menor, menos "criativo/alucinado" e mais determinístico
+PARAMETER num_ctx 8192         # Aumenta a memória da conversa para 8 mil tokens
+PARAMETER top_k 40             # Restringe as escolhas lógicas
+PARAMETER repeat_penalty 1.15  # Punição por repetição
+
+# 3. Exemplo de Injeção de Histórico
+MESSAGE user "Relatório inicial:"
+MESSAGE assistant "Aguardando ordens de extração, Senhor."</div>
+
+            <h3>Compilando o Modelo Customizado</h3>
+            <p>Para construir a sua versão, copie o arquivo para dentro do container e ordene a compilação:</p>
+            <div class="code-title">Terminal (WSL)</div>
+            <div class="code-block">docker cp Modelfile ollama:/Modelfile
+docker exec -it ollama ollama create AnalistaMilitar -f /Modelfile</div>
+            <p>Imediatamente após rodar, o modelo <strong>AnalistaMilitar</strong> aparecerá no seu comando <code>ollama list</code> e poderá ser selecionado no n8n ou no Open WebUI!</p>
+
+            <!-- Seção 6 -->
+            <h2 id="api-rest">6. Consumo via API REST HTTP</h2>
+            <p>Sistemas corporativos não interagem com o Ollama digitando comandos no terminal. Eles usam <strong>Programação e Redes</strong>. O Ollama expõe um servidor Web (HTTP) na porta <code>11434</code>.</p>
+            <p>Qualquer linguagem de programação (Python, Javascript, Rust) pode enviar uma requisição HTTP POST para o Ollama e receber a resposta em JSON.</p>
+            
+            <h3>Exemplo de Integração Bruta (cURL)</h3>
+            <p>Para comprovar isso, execute este comando no terminal para fazer uma chamada de rede direta ao cérebro de IA:</p>
+            <div class="code-title">Requisição HTTP (POST)</div>
+            <div class="code-block">curl -X POST http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt": "Explique o conceito de latência de rede em uma frase.",
+  "stream": false
+}'</div>
+            <p>Essa é exatamente a mesma comunicação invisível que ferramentas como o n8n e o LiteLLM fazem por trás das cortinas.</p>
+            
+        </div>
+    </div>
+    
+    <script>
+        // Lógica simples para iluminar o menu lateral de acordo com a rolagem
+        const mainContent = document.querySelector('.main-content');
+        const sections = document.querySelectorAll('h2[id]');
+        const navLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+
+        mainContent.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (mainContent.scrollTop >= (sectionTop - 100)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current) && current !== '') {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Banco Relacional Compartilhado (PostgreSQL 16)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_storage:/var/lib/postgresql/data
+      - ./config/init-db/01-init-multiple-dbs.sql:/docker-entrypoint-initdb.d/01-init-multiple-dbs.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 2. Memória de Curto Prazo, Filas & Cache Semântico (Redis 7)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_storage:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 3. Servidor de Inferência LLM (Ollama - Aceleração GPU NVIDIA RTX 4060)
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=10m
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_KV_CACHE_TYPE=q8_0
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_PARALLEL=1
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 4. Observabilidade LLMOps, Tracing de Agentes e RAG Eval (Arize Phoenix)
+  # ---------------------------------------------------------------------------
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6006:6006"
+      - "127.0.0.1:4317:4317"
+    environment:
+      - PHOENIX_SQL_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/phoenix_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 5. AI Gateway, Cache & Proxy de Chaves (LiteLLM)
+  # ---------------------------------------------------------------------------
+  litellm:
+    image: ghcr.io/berriai/litellm-database:main-latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/litellm_db
+      - STORE_MODEL_IN_DB=True
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
+      - PHOENIX_COLLECTOR_HTTP_ENDPOINT=http://phoenix:6006/v1/traces
+      - LITELLM_OTEL_V2=true
+    volumes:
+      - ./config/litellm/config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 6. Extração Pesada de Documentos, PDFs & OCR (Apache Tika Full)
+  # ---------------------------------------------------------------------------
+  tika:
+    image: apache/tika:latest-full
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9998:9998"
+    profiles: ["full", "documents"]
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 7. Transcrição de Áudio Speech-to-Text (Faster-Whisper CPU int8)
+  # ---------------------------------------------------------------------------
+  whisper-stt:
+    image: fedirz/faster-whisper-server:latest-cpu
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      - WHISPER__MODEL=${WHISPER_MODEL:-Systran/faster-whisper-small}
+      - WHISPER__INFERENCE_DEVICE=cpu
+      - WHISPER__COMPUTE_TYPE=int8
+    volumes:
+      - whisper_storage:/root/.cache/huggingface
+    profiles: ["full", "voice"]
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 8. Síntese de Voz Neural Text-to-Speech (OpenEDAI Speech / Piper)
+  # ---------------------------------------------------------------------------
+  openedai-tts:
+    image: ghcr.io/matatonic/openedai-speech:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8002:8000"
+    volumes:
+      - tts_voices:/app/voices
+      - tts_config:/app/config
+    profiles: ["full", "voice"]
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 9. Interface Web de Chat (Open WebUI - OCR Tika + Voz Locais)
+  # ---------------------------------------------------------------------------
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:8080"
+    environment:
+      - OPENAI_API_BASE_URL=http://litellm:4000/v1
+      - OPENAI_API_KEY=${LITELLM_MASTER_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_db
+      - CONTENT_EXTRACTION_ENGINE=tika
+      - TIKA_SERVER_URL=http://tika:9998
+      - AUDIO_STT_ENGINE=openai
+      - AUDIO_STT_OPENAI_API_BASE_URL=http://whisper-stt:8000/v1
+      - AUDIO_STT_OPENAI_API_KEY=sk-local-stt
+      - AUDIO_STT_MODEL=Systran/faster-whisper-small
+      - AUDIO_TTS_ENGINE=openai
+      - AUDIO_TTS_OPENAI_API_BASE_URL=http://openedai-tts:8000/v1
+      - AUDIO_TTS_OPENAI_API_KEY=sk-local-tts
+      - AUDIO_TTS_MODEL=tts-1
+      - AUDIO_TTS_VOICE=alloy
+    volumes:
+      - open-webui_storage:/app/backend/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      litellm:
+        condition: service_started
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 10. Orquestrador de Workflows e Agentes (n8n)
+  # ---------------------------------------------------------------------------
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+    volumes:
+      - n8n_storage:/home/node/.n8n
+    profiles: ["full", "workflows"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 11. Construtor Visual de Agentes e Chains (Flowise)
+  # ---------------------------------------------------------------------------
+  flowise:
+    image: flowiseai/flowise:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=flowise_db
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - FLOWISE_SECRET_KEY_OVERWRITE=${FLOWISE_SECRET_KEY}
+    volumes:
+      - flowise_storage:/root/.flowise
+    profiles: ["full", "visual-agents"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 12. Banco de Dados Vetorial para RAG (Qdrant)
+  # ---------------------------------------------------------------------------
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    profiles: ["full", "vector"]
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 13. Banco de Dados em Grafo para GraphRAG (Neo4j - Limites Rígidos de RAM)
+  # ---------------------------------------------------------------------------
+  neo4j:
+    image: neo4j:5-community
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_server_memory_pagecache_size=256M
+      - NEO4J_server_memory_heap_initial__size=256M
+      - NEO4J_server_memory_heap_max__size=512M
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    profiles: ["full", "graph"]
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 14. Navegador Headless para Web Scraping & Agentes Web (Browserless)
+  # ---------------------------------------------------------------------------
+  browserless:
+    image: ghcr.io/browserless/chromium:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3002:3000"
+    shm_size: "1gb"
+    environment:
+      - TOKEN=${BROWSERLESS_TOKEN}
+      - MAX_CONCURRENT_SESSIONS=2
+      - TIMEOUT=60000
+    networks:
+      - ai_network
+    profiles: ["full", "browser"]
+
+  # ---------------------------------------------------------------------------
+  # 15. Servidor MCP + API de Ferramentas em Python (FastAPI + FastMCP)
+  # ---------------------------------------------------------------------------
+  python-mcp:
+    build: ./apps/python-mcp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - BROWSERLESS_TOKEN=${BROWSERLESS_TOKEN}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 16. Gestão de Containers, Logs & Métricas (Portainer CE)
+  # ---------------------------------------------------------------------------
+  portainer:
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9001:9000"
+    command: ["-H", "unix:///var/run/docker.sock"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_storage:/data
+    profiles: ["management"]
+    networks:
+      - ai_network
+
+  # ---------------------------------------------------------------------------
+  # 17. Serviço interno para consultar e aplicar atualizações do projeto
+  # ---------------------------------------------------------------------------
+  system-updater:
+    build: ./apps/updater
+    image: laboratorio-ia-system-updater:local
+    restart: unless-stopped
+    environment:
+      UPDATER_TOKEN: ${UPDATER_TOKEN:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - ai_network
+    volumes:
+      - ./:/workspace
+      - system_update_state:/state
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # ---------------------------------------------------------------------------
+  # 18. Dashboard Unificado de Controle, Descrições & Status (Custom Dashboard)
+  # ---------------------------------------------------------------------------
+  dashboard:
+    build: ./apps/dashboard
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      SYSTEM_UPDATER_URL: http://system-updater:8091
+      SYSTEM_UPDATER_TOKEN: ${UPDATER_TOKEN:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9090/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ai_network
+    depends_on:
+      system-updater:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./apps/dashboard:/app:ro
+      - system_update_state:/var/lib/lab-update:ro
+
+  # ---------------------------------------------------------------------------
+  # 19. JupyterLab com bibliotecas de IA e acesso aos serviços internos
+  # ---------------------------------------------------------------------------
+  jupyter:
+    build:
+      context: .
+      dockerfile: apps/jupyter/Dockerfile
+    image: laboratorio-ia-jupyter:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8888"
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:?Defina JUPYTER_TOKEN no arquivo .env}
+      OLLAMA_HOST: http://ollama:11434
+      OPENAI_BASE_URL: http://litellm:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      LITELLM_BASE_URL: http://litellm:4000/v1
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY}
+      PYTHON_MCP_URL: http://python-mcp:8000
+      MCP_URL: http://python-mcp:8000/mcp
+      QDRANT_URL: http://qdrant:6333
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_AUTH: ${NEO4J_AUTH}
+      REDIS_URL: redis://redis:6379/0
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TIKA_URL: http://tika:9998
+      PHOENIX_COLLECTOR_ENDPOINT: http://phoenix:6006/v1/traces
+    volumes:
+      - jupyter_storage:/home/jovyan/work
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8888), timeout=3).close()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: ["full"]
+    networks:
+      - ai_network
+
+# -----------------------------------------------------------------------------
+# Definições de Volumes Nomeados (Persistência no Linux Ext4 / Docker Daemon)
+# -----------------------------------------------------------------------------
+volumes:
+  system_update_state:
+    name: system_update_state
+  ollama_storage:
+    name: ollama_storage
+  open-webui_storage:
+    name: open-webui_storage
+  postgres_storage:
+    name: postgres_storage
+  n8n_storage:
+    name: n8n_storage
+  flowise_storage:
+    name: flowise_storage
+  qdrant_storage:
+    name: qdrant_storage
+  neo4j_data:
+    name: neo4j_data
+  neo4j_logs:
+    name: neo4j_logs
+  redis_storage:
+    name: redis_storage
+  whisper_storage:
+    name: whisper_storage
+  tts_voices:
+    name: tts_voices
+  tts_config:
+    name: tts_config
+  portainer_storage:
+    name: portainer_storage
+  jupyter_storage:
+    name: jupyter_storage
+
+# -----------------------------------------------------------------------------
+# Definição de Rede Dedicada Bridge
+# -----------------------------------------------------------------------------
+networks:
+  ai_network:
+    name: ai_network
+    driver: bridge

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1020">
+  <title>Laboratório IA | Serviços</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016-2">
+  <script defer src="/static/js/dashboard.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="/dashboard" aria-label="Laboratório IA, início">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span><strong>Laboratório IA</strong><small>EsCom · Seção Delta</small></span>
+      </a>
+      <div class="nav-label">Workspace</div>
+      <a class="nav-link active" href="/dashboard" aria-current="page"><span aria-hidden="true">▦</span> Serviços</a>
+      <a class="nav-link" href="/documentacao"><span aria-hidden="true">▤</span> Documentação</a>
+      <a class="nav-link" href="/configuracoes"><span aria-hidden="true">⚙</span> Configurações</a>
+      <a class="nav-link" href="/diagrama"><span aria-hidden="true">⌘</span> Arquitetura</a>
+      <a class="nav-link" href="/"><span aria-hidden="true">⌂</span> Início</a>
+      <div class="sidebar-note">
+        <span class="note-icon" aria-hidden="true">⌁</span>
+        <strong>Ambiente local</strong>
+        <p>Os serviços são acessíveis apenas neste computador.</p>
+      </div>
+      <div class="sidebar-footer"><span class="live-dot"></span> Painel conectado</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>Serviços</strong></div>
+        <div class="topbar-actions">
+          <span class="local-pill"><span class="live-dot"></span> Somente local</span>
+          <button class="button button-quiet" id="refresh-button" type="button"><span class="refresh-icon" aria-hidden="true">↻</span> Atualizar</button>
+        </div>
+      </header>
+
+      <section class="page-intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">PLATAFORMA DE IA · CONTROLE DO AMBIENTE</p>
+          <h1 id="page-title">Seus serviços, em um só lugar.</h1>
+          <p class="intro-copy">Acompanhe a saúde do laboratório e gerencie os containers sem sair do painel.</p>
+        </div>
+        <div class="updated-label"><span class="live-dot"></span><span id="last-updated">Conectando ao Docker…</span></div>
+      </section>
+
+      <section class="overview-grid" aria-label="Resumo dos serviços">
+        <article class="overview-card overview-total"><div class="overview-top"><span>Total de serviços</span><span class="overview-icon">▦</span></div><strong id="count-total">—</strong><small>configurados neste laboratório</small></article>
+        <article class="overview-card overview-running"><div class="overview-top"><span>Em execução</span><span class="overview-icon">↗</span></div><strong id="count-running">—</strong><small>containers ativos</small></article>
+        <article class="overview-card overview-healthy"><div class="overview-top"><span>Saudáveis</span><span class="overview-icon">✓</span></div><strong id="count-healthy">—</strong><small>respondendo às verificações</small></article>
+        <article class="overview-card overview-stopped"><div class="overview-top"><span>Parados</span><span class="overview-icon">Ⅱ</span></div><strong id="count-stopped">—</strong><small>prontos para iniciar</small></article>
+      </section>
+
+      <section class="services-section" aria-labelledby="services-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">INVENTÁRIO</p><h2 id="services-title">Serviços do laboratório</h2></div>
+          <span class="results-count" id="results-count"></span>
+        </div>
+        <div class="toolbar">
+          <label class="search-box"><span aria-hidden="true">⌕</span><span class="visually-hidden">Buscar serviço</span><input id="search-input" type="search" placeholder="Buscar serviço…" autocomplete="off"></label>
+          <label class="filter-select"><span class="visually-hidden">Filtrar por categoria</span><select id="category-filter"><option value="all">Todas as categorias</option></select></label>
+          <div class="status-filters" role="group" aria-label="Filtrar por estado">
+            <button class="filter-chip selected" type="button" data-filter="all" aria-pressed="true">Todos</button>
+            <button class="filter-chip" type="button" data-filter="running" aria-pressed="false">Em execução</button>
+            <button class="filter-chip" type="button" data-filter="stopped" aria-pressed="false">Parados</button>
+          </div>
+        </div>
+        <div id="service-groups" class="service-groups" aria-live="polite"></div>
+        <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><strong>Nenhum serviço encontrado</strong><p>Tente mudar a busca ou os filtros.</p></div>
+      </section>
+
+      <footer class="page-footer"><span>Laboratório de Inteligência Artificial</span><span>Estado atualizado automaticamente a cada 15 segundos</span></footer>
+    </main>
+  </div>
+
+  <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="dialog-title">
+    <form method="dialog">
+      <div class="dialog-mark" id="dialog-mark" aria-hidden="true">Ⅱ</div>
+      <p class="eyebrow">CONTROLE DO CONTAINER</p>
+      <h2 id="dialog-title">Desligar serviço?</h2>
+      <p id="dialog-copy">As aplicações que dependem deste serviço podem ficar indisponíveis.</p>
+      <div class="dialog-actions"><button class="button button-quiet" value="cancel">Cancelar</button><button class="button button-danger" id="confirm-action" value="confirm">Desligar serviço</button></div>
+    </form>
+  </dialog>
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+
+  <script id="services-data" type="application/json">{{ services | tojson }}</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+jupyterlab>=4.4,<5
+ipykernel>=6.29,<7
+numpy>=2,<3
+pandas>=2.2,<4
+matplotlib>=3.9,<4
+seaborn>=0.13,<1
+scikit-learn>=1.6,<2
+openai>=1.75,<3
+ollama>=0.5,<1
+qdrant-client>=1.13,<2
+neo4j>=5.28,<7
+redis>=5,<7
+psycopg[binary]>=3.2,<4
+requests>=2.32,<3
+python-dotenv>=1,<2
+mcp>=1.9,<2
