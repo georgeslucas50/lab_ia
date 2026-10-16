@@ -166,6 +166,17 @@ function Invoke-Wsl([string[]]$Arguments) {
     }
 }
 
+function ConvertTo-WslPath([string]$WindowsPath) {
+    # Barras invertidas podem ser removidas ao atravessar PowerShell 5.1 -> wsl.exe.
+    # Use o formato C:/... antes de entregar o caminho ao wslpath.
+    $portablePath = [System.IO.Path]::GetFullPath($WindowsPath).Replace('\', '/')
+    $linuxPath = ((& wsl.exe -d $Distro -u root -- wslpath -a -u $portablePath) -join "`n").Replace("`0", '').Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $linuxPath) {
+        throw 'Não foi possível converter um caminho do projeto para o Ubuntu.'
+    }
+    return $linuxPath
+}
+
 function Start-WslKeepAlive {
     $wslProcesses = @(Get-CimInstance Win32_Process -Filter "Name = 'wsl.exe'" -ErrorAction SilentlyContinue)
     $keepAliveRunning = @($wslProcesses | Where-Object {
@@ -286,8 +297,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Step 'Instalando Docker Engine, Compose e NVIDIA Container Toolkit (se disponível)'
-$linuxInstaller = ((& wsl.exe -d $Distro -u root -- wslpath -a (Join-Path $PSScriptRoot 'install_docker.sh')) -join "`n").Replace("`0", '').Trim()
-if ($LASTEXITCODE -ne 0 -or -not $linuxInstaller) { throw 'Não foi possível converter o caminho do instalador para o Ubuntu.' }
+$linuxInstaller = ConvertTo-WslPath (Join-Path $PSScriptRoot 'install_docker.sh')
 & wsl.exe -d $Distro -u root -- bash $linuxInstaller
 if ($LASTEXITCODE -eq 42) {
     Invoke-Wsl @('--terminate', $Distro)
@@ -297,8 +307,7 @@ if ($LASTEXITCODE -ne 0) { throw "A instalação do Docker no Ubuntu falhou (có
 
 Ensure-EnvironmentFile
 
-$linuxProject = ((& wsl.exe -d $Distro -u root -- wslpath -a $ProjectRoot) -join "`n").Replace("`0", '').Trim()
-if ($LASTEXITCODE -ne 0 -or -not $linuxProject) { throw 'Não foi possível converter o caminho do projeto para o Ubuntu.' }
+$linuxProject = ConvertTo-WslPath $ProjectRoot
 
 Write-Step 'Mantendo o Ubuntu WSL ativo enquanto o laboratório está ligado'
 Start-WslKeepAlive
