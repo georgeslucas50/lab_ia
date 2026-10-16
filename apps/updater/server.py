@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 
 
 WORKSPACE = Path("/workspace")
+GIT_SAFE_DIRECTORY = f"safe.directory={WORKSPACE}"
 STATE_FILE = Path("/state/update-state.json")
 TOKEN = os.environ.get("UPDATER_TOKEN", "")
 CONFIRMATION = "ATUALIZAR LABORATÓRIO"
@@ -28,7 +29,7 @@ def read_state():
 
 def is_github_origin():
     remote = subprocess.run(
-        ["git", "config", "--get", "remote.origin.url"],
+        ["git", "-c", GIT_SAFE_DIRECTORY, "config", "--get", "remote.origin.url"],
         cwd=WORKSPACE,
         text=True,
         capture_output=True,
@@ -62,7 +63,7 @@ def git_env():
 
 def run_git(*arguments, timeout=90):
     return subprocess.run(
-        ["git", *arguments],
+        ["git", "-c", GIT_SAFE_DIRECTORY, *arguments],
         cwd=WORKSPACE,
         env=git_env(),
         text=True,

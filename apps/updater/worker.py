@@ -11,6 +11,7 @@ PROJECT = os.environ["UPDATE_PROJECT"]
 JOB_ID = os.environ["UPDATE_JOB_ID"]
 STATE_FILE = Path("/state/update-state.json")
 GPU_ENABLED = os.environ.get("UPDATE_USE_GPU") == "1"
+GIT_SAFE_DIRECTORY = f"safe.directory={PROJECT_DIR}"
 
 
 def load_state():
@@ -35,7 +36,7 @@ def update_job(**updates):
 
 def git(*args, check=True):
     remote = subprocess.run(
-        ["git", "config", "--get", "remote.origin.url"], cwd=PROJECT_DIR,
+        ["git", "-c", GIT_SAFE_DIRECTORY, "config", "--get", "remote.origin.url"], cwd=PROJECT_DIR,
         text=True, capture_output=True, check=False,
     )
     remote_url = (remote.stdout or "").strip()
@@ -46,7 +47,7 @@ def git(*args, check=True):
     if is_github:
         environment["GIT_ASKPASS"] = "/opt/updater/git-askpass"
     result = subprocess.run(
-        ["git", *args], cwd=PROJECT_DIR, text=True, capture_output=True,
+        ["git", "-c", GIT_SAFE_DIRECTORY, *args], cwd=PROJECT_DIR, text=True, capture_output=True,
         env=environment,
         timeout=600, check=False,
     )
