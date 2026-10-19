@@ -42,11 +42,11 @@
   function renderUpdateStatus(status) {
     currentUpdateStatus = status;
     const failed = String(status.message || '').startsWith('Não foi possível');
-    const state = status.canUpdate ? 'ready' : (status.dirty ? 'warning' : (failed ? 'error' : 'idle'));
+    const state = status.canUpdate ? 'ready' : (failed ? 'error' : 'idle');
     showUpdateStatus(status.message || 'Estado do Git atualizado.', state);
     const versions = [];
     if (status.branch) versions.push(`branch ${status.branch}`);
-    if (status.currentCommit) versions.push(`local ${status.currentCommit}`);
+    if (status.appliedCommit) versions.push(`aplicada ${status.appliedCommit}`);
     if (status.remoteCommit) versions.push(`GitHub ${status.remoteCommit}`);
     updateVersion.textContent = versions.join(' · ');
     updateVersion.hidden = versions.length === 0;
@@ -198,12 +198,11 @@
     }
   }
 
-  async function refreshUpdateStatus(refresh = true) {
+  async function refreshUpdateStatus(_refresh = true) {
     setUpdateBusy(true);
-    showUpdateStatus(refresh ? 'Consultando o branch remoto…' : 'Lendo o estado local do Git…');
+    showUpdateStatus('Consultando o branch padrão do GitHub…');
     try {
-      const suffix = refresh ? '?refresh=true' : '';
-      const response = await fetch(`/api/control/updates/status${suffix}`, { cache: 'no-store' });
+      const response = await fetch('/api/control/updates/status?refresh=true', { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.detail || 'Não foi possível consultar o GitHub.');
       renderUpdateStatus(payload);
@@ -368,5 +367,5 @@
 
   renderServices();
   restoreActiveJob();
-  refreshUpdateStatus(false);
+  refreshUpdateStatus(true);
 })();

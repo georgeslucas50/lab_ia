@@ -77,6 +77,20 @@ def clean_output(result):
     return (result.stdout or "").strip()
 
 
+def github_default_branch():
+    remote_head = run_git("ls-remote", "--symref", "origin", "HEAD", timeout=90)
+    if remote_head.returncode != 0:
+        return None, "Não foi possível consultar o branch padrão do GitHub. Verifique a conexão e a autenticação."
+    match = re.search(r"^ref:\s+refs/heads/([^\s]+)\s+HEAD$", remote_head.stdout or "", re.MULTILINE)
+    if not match:
+        return None, "O GitHub não informou um branch padrão para o repositório origin."
+    branch = match.group(1)
+    checked = run_git("check-ref-format", "--branch", branch, timeout=10)
+    if checked.returncode != 0:
+        return None, "O GitHub informou um nome de branch inválido."
+    return branch, None
+
+
 def update_status(refresh=False):
     repository = run_git("rev-parse", "--is-inside-work-tree", timeout=10)
     if repository.returncode != 0:
@@ -94,87 +108,74 @@ def update_status(refresh=False):
             "message": "Configure o remoto origin para apontar a um repositório do GitHub.",
         }
 
-    head = clean_output(run_git("rev-parse", "--short=12", "HEAD", timeout=10))
-    full_head = clean_output(run_git("rev-parse", "HEAD", timeout=10))
-    branch = clean_output(run_git("branch", "--show-current", timeout=10))
-    upstream_result = run_git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}", timeout=10)
-    dirty_result = run_git("status", "--porcelain", "--untracked-files=normal", timeout=20)
-    dirty = dirty_result.returncode != 0 or bool(clean_output(dirty_result))
-    state = read_state()
-
-    if not state.get("appliedCommit") and full_head:
-        state = write_state(appliedCommit=full_head)
-
-    if upstream_result.returncode != 0:
-        return {
-            "configured": True,
-            "remoteConfigured": False,
-            "branch": branch or None,
-            "currentCommit": head or None,
-            "dirty": dirty,
-            "canUpdate": False,
-            "message": "A branch atual ainda não acompanha uma branch remota.",
-        }
-
-    upstream = clean_output(upstream_result)
-    fetch_message = None
-    if refresh:
-        fetched = run_git("fetch", "--prune", "origin", timeout=300)
-        if fetched.returncode != 0:
-            fetch_message = "Não foi possível consultar o GitHub. Verifique a conexão e, se o repositório for privado, a autenticação local."
-
-    remote_result = run_git("rev-parse", "--short=12", upstream, timeout=10)
-    count_result = run_git("rev-list", "--left-right", "--count", f"HEAD...{upstream}", timeout=30)
-    if remote_result.returncode != 0 or count_result.returncode != 0:
+    fetched = run_git("fetch", "--prune", "origin", timeout=300)
+    if fetched.returncode != 0:
         return {
             "configured": True,
             "remoteConfigured": True,
-            "branch": branch or None,
-            "upstream": upstream,
-            "currentCommit": head or None,
-            "dirty": dirty,
             "canUpdate": False,
-            "message": fetch_message or "Não foi possível comparar esta branch com o remoto.",
+            "message": "Não foi possível consultar o GitHub. Verifique a conexão e, se o repositório for privado, a autenticação local.",
         }
 
-    counts = clean_output(count_result).split()
-    ahead, behind = (int(counts[0]), int(counts[1])) if len(counts) == 2 else (0, 0)
+    branch, branch_error = github_default_branch()
+    if branch_error:
+        return {
+            "configured": True,
+            "remoteConfigured": True,
+            "canUpdate": False,
+            "message": branch_error,
+        }
+
+    remote_ref = f"refs/remotes/origin/{branch}"
+    remote_result = run_git("rev-parse", "--verify", remote_ref, timeout=10)
+    if remote_result.returncode != 0:
+        fetched_branch = run_git(
+            "fetch", "origin", f"+refs/heads/{branch}:{remote_ref}", timeout=300
+        )
+        if fetched_branch.returncode != 0:
+            return {
+                "configured": True,
+                "remoteConfigured": True,
+                "branch": branch,
+                "canUpdate": False,
+                "message": "O branch padrão do GitHub não pôde ser baixado para comparação.",
+            }
+        remote_result = run_git("rev-parse", "--verify", remote_ref, timeout=10)
+
+    full_remote = clean_output(run_git("rev-parse", remote_ref, timeout=10))
+    if not full_remote:
+        return {
+            "configured": True,
+            "remoteConfigured": True,
+            "branch": branch,
+            "canUpdate": False,
+            "message": "Não foi possível ler o commit mais recente do GitHub.",
+        }
+
+    state = read_state()
     applied = state.get("appliedCommit", "")
-    pending_apply = bool(applied and full_head and full_head != applied and not dirty and ahead == 0)
-    can_update = not dirty and ((behind > 0 and ahead == 0) or pending_apply)
-    if dirty:
-        message = "Há alterações locais. Salve e publique essas alterações antes de aplicar uma atualização."
-    elif fetch_message:
-        message = fetch_message
-        can_update = pending_apply
-    elif pending_apply and behind == 0:
-        message = "Há uma versão baixada que ainda não foi aplicada aos containers."
-    elif behind > 0 and ahead == 0:
-        message = f"{behind} atualização(ões) disponível(is) no remoto."
-    elif ahead > 0 and behind > 0:
-        message = "A branch local e a remota divergiram; sincronize o Git manualmente antes de atualizar."
-        can_update = False
-    elif ahead > 0:
-        message = "Há commits locais ainda não publicados no remoto."
-        can_update = pending_apply
+    pending_apply = not applied or full_remote != applied
+    remote_short = clean_output(run_git("rev-parse", "--short=12", remote_ref, timeout=10))
+    applied_short = applied[:12] if applied else None
+    if not applied:
+        message = f"GitHub consultado. A versão aplicada ainda não está registrada; a sincronização com {branch} está disponível."
+    elif pending_apply:
+        message = f"O GitHub tem uma versão diferente no branch {branch}; a sincronização está pronta."
     else:
-        message = "O laboratório já está na versão mais recente."
+        message = f"GitHub consultado. O branch {branch} já corresponde à versão aplicada; você pode sincronizá-lo novamente."
 
     return {
         "configured": True,
         "remoteConfigured": True,
-        "branch": branch or None,
-        "upstream": upstream,
-        "currentCommit": head or None,
-        "remoteCommit": clean_output(remote_result) or None,
-        "ahead": ahead,
-        "behind": behind,
-        "dirty": dirty,
+        "branch": branch,
+        "upstream": f"origin/{branch}",
+        "appliedCommit": applied_short,
+        "remoteCommit": remote_short or None,
         "pendingApply": pending_apply,
-        "canUpdate": can_update,
-        "upToDate": not dirty and ahead == 0 and behind == 0 and not pending_apply,
+        "canUpdate": True,
+        "upToDate": not pending_apply,
         "message": message,
-        "checkedAt": time.time() if refresh else state.get("checkedAt"),
+        "checkedAt": time.time(),
     }
 
 

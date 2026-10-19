@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0b1020">
   <title>Laboratório IA | Documentação</title>
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016-2">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261019-n8n">
 </head>
 <body>
   <div class="app-shell">
@@ -39,13 +39,13 @@
         <div>
           <p class="eyebrow">CENTRAL DE APRENDIZAGEM</p>
           <h1 id="page-title">Documentação</h1>
-          <p class="intro-copy">Guias de uso, conceitos e exemplos práticos para os serviços do laboratório.</p>
+          <p class="intro-copy">Guias de uso, conceitos e exemplos práticos para os serviços do laboratório. O manual completo do n8n já está disponível.</p>
         </div>
       </section>
 
       <section class="docs-intro-card">
         <span class="docs-intro-icon" aria-hidden="true">▤</span>
-        <div><p class="eyebrow">CONTEÚDO EM PREPARAÇÃO</p><h2>Guias para cada container</h2><p>Esta área reúne a estrutura de documentação do laboratório. Os guias serão adicionados por serviço.</p></div>
+        <div><p class="eyebrow">CENTRAL DE GUIAS</p><h2>Aprenda a usar cada serviço</h2><p>Comece pelo guia completo do n8n: ele inclui dois exercícios práticos conectados às APIs deste laboratório. Os demais manuais serão adicionados por serviço.</p></div>
       </section>
 
       <section class="settings-section" aria-labelledby="docs-list-title">
@@ -56,11 +56,17 @@
         <div class="docs-grid">
           {% for service in services %}
           <article class="docs-card">
-            <div class="docs-card-top"><span class="service-icon" aria-hidden="true">{{ service.icon }}</span><span class="docs-status">EM BREVE</span></div>
+            <div class="docs-card-top"><span class="service-icon" aria-hidden="true">{{ service.icon }}</span>{% if service.id == 'n8n' %}<span class="docs-status available">GUIA DISPONÍVEL</span>{% elif service.id == 'ollama' %}<span class="docs-status available">GUIA DISPONÍVEL</span>{% else %}<span class="docs-status">EM BREVE</span>{% endif %}</div>
             <p class="docs-category">{{ service.category }}</p>
             <h3>{{ service.name }}</h3>
             <p class="docs-description">{{ service.description }}</p>
+            {% if service.id == 'n8n' %}
+            <a class="docs-link" href="/instrucoes/n8n">Abrir guia completo <span aria-hidden="true">→</span></a>
+            {% elif service.id == 'ollama' %}
+            <a class="docs-link" href="/instrucoes/ollama">Abrir guia <span aria-hidden="true">→</span></a>
+            {% else %}
             <span class="docs-placeholder">Guia de uso em preparação</span>
+            {% endif %}
           </article>
           {% endfor %}
         </div>

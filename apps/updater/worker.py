@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -69,6 +70,22 @@ def compose_prefix():
     return prefix
 
 
+def github_default_branch():
+    refs = git("ls-remote", "--symref", "origin", "HEAD")
+    match = re.search(r"^ref:\s+refs/heads/([^\s]+)\s+HEAD$", refs, re.MULTILINE)
+    if not match:
+        raise RuntimeError("O GitHub não informou o branch padrão do repositório origin.")
+    branch = match.group(1)
+    if (
+        not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]*", branch)
+        or ".." in branch
+        or branch.endswith("/")
+        or "//" in branch
+    ):
+        raise RuntimeError("O GitHub informou um nome de branch inválido.")
+    return branch, f"refs/remotes/origin/{branch}"
+
+
 def run_compose(prefix, *args, phase, message, timeout=3600):
     update_job(status="running", phase=phase, message=message)
     result = subprocess.run(
@@ -99,25 +116,21 @@ def wait_dashboard(prefix):
 
 
 def main():
-    update_job(status="running", phase="Verificando alterações locais", message="Confirmando que não há arquivos locais pendentes.")
-    if git("status", "--porcelain", "--untracked-files=normal"):
-        raise RuntimeError("A atualização foi cancelada porque há alterações locais no repositório. Salve-as antes de tentar novamente.")
-
-    upstream = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}", check=False)
-    old_commit = git("rev-parse", "HEAD")
-    if not upstream:
-        raise RuntimeError("A branch atual não acompanha um remoto Git; configure o repositório antes de atualizar.")
-
-    update_job(status="running", phase="Sincronizando Git", message="Buscando a versão mais recente do branch configurado.")
+    update_job(status="running", phase="Consultando GitHub", message="Buscando a versão publicada no branch padrão do GitHub.")
     git("fetch", "--prune", "origin")
-    counts = git("rev-list", "--left-right", "--count", f"HEAD...{upstream}").split()
-    if len(counts) != 2:
-        raise RuntimeError("Não foi possível comparar os commits locais e remotos.")
-    ahead, behind = int(counts[0]), int(counts[1])
-    if ahead != 0:
-        raise RuntimeError("A branch local tem commits próprios ou divergiu do remoto. Sincronize o Git manualmente antes de atualizar.")
-    if behind:
-        git("merge", "--ff-only", upstream)
+    branch, remote_ref = github_default_branch()
+    if not git("rev-parse", "--verify", remote_ref, check=False):
+        git("fetch", "origin", f"+refs/heads/{branch}:{remote_ref}")
+
+    old_commit = git("rev-parse", "HEAD")
+    git("update-ref", f"refs/lab-updater/backups/{JOB_ID}", old_commit)
+    local_changes = git("status", "--porcelain", "--untracked-files=normal", check=False)
+    if local_changes:
+        git("stash", "push", "--include-untracked", "--message", f"Backup before GitHub update {JOB_ID}")
+
+    update_job(status="running", phase="Sincronizando com o GitHub", message=f"Aplicando o branch padrão origin/{branch} ao projeto local.")
+    git("checkout", "-B", branch, remote_ref)
+    git("branch", "--set-upstream-to", f"origin/{branch}", branch)
 
     prefix = compose_prefix()
     run_compose(prefix, "config", "--quiet", phase="Validando configuração", message="Validando os arquivos do Compose antes de alterar os containers.", timeout=120)
@@ -131,7 +144,7 @@ def main():
     state["appliedCommit"] = current_commit
     state["appliedAt"] = time.time()
     job = state.get("job", {})
-    job.update(status="complete", phase="Atualização concluída", message="O laboratório foi atualizado e o dashboard voltou a responder.", updatedAt=time.time())
+    job.update(status="complete", phase="Atualização concluída", message="A versão do GitHub foi aplicada e o dashboard voltou a responder. Alterações locais foram guardadas em backup Git; o arquivo .env e os volumes de dados foram preservados.", updatedAt=time.time())
     state["job"] = job
     temporary = STATE_FILE.with_suffix(".tmp")
     temporary.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")

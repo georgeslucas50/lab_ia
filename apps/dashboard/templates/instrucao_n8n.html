@@ -1,88 +1,288 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual - n8n</title>
-    <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #e2e8f0; }
-        #bg-video { position: fixed; top: 0; left: 0; min-width: 100%; min-height: 100%; z-index: -1; object-fit: cover; opacity: 0.2; }
-        
-        .header { position: sticky; top: 0; padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .back-btn { background: rgba(30,41,59,0.8); border: 1px solid #475569; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: background 0.3s; }
-        .back-btn:hover { background: #3b82f6; }
-
-        .container { max-width: 900px; margin: 40px auto; padding: 50px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
-        
-        h1 { color: #93c5fd; font-size: 2.5rem; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-top: 0; }
-        h2 { color: #60a5fa; margin-top: 40px; border-bottom: 1px solid #334155; padding-bottom: 5px; font-size: 1.8rem; }
-        p { font-size: 1.1rem; line-height: 1.7; }
-        ul, ol { font-size: 1.1rem; line-height: 1.7; margin-bottom: 20px; }
-        li { margin-bottom: 10px; }
-        
-        .highlight { background-color: rgba(37, 99, 235, 0.2); padding: 2px 6px; border-radius: 4px; color: #93c5fd; font-weight: bold; }
-        .code-block { background-color: #0f172a; padding: 20px; border-radius: 8px; font-family: monospace; color: #a7f3d0; margin: 20px 0; border: 1px solid #334155; white-space: pre-wrap; word-break: break-all; }
-        
-        strong { color: #f8fafc; }
-        
-        .footer-nav { margin-top: 50px; text-align: center; border-top: 1px solid #334155; padding-top: 20px; }
-        .footer-nav a { display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; transition: background 0.3s; }
-        .footer-nav a:hover { background: #1d4ed8; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1020">
+  <title>Guia completo do n8n | Laboratório IA</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261019-n8n">
 </head>
 <body>
-    <video autoplay muted loop playsinline id="bg-video">
-        <source src="/static/media/EsCom.mp4" type="video/mp4">
-    </video>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="/dashboard" aria-label="Laboratório IA, serviços">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span><strong>Laboratório IA</strong><small>EsCom · Seção Delta</small></span>
+      </a>
+      <div class="nav-label">Workspace</div>
+      <a class="nav-link" href="/dashboard" title="Serviços"><span aria-hidden="true">▦</span> Serviços</a>
+      <a class="nav-link active" href="/documentacao" title="Documentação" aria-current="page"><span aria-hidden="true">▤</span> Documentação</a>
+      <a class="nav-link" href="/configuracoes" title="Configurações"><span aria-hidden="true">⚙</span> Configurações</a>
+      <a class="nav-link" href="/diagrama" title="Arquitetura"><span aria-hidden="true">⌘</span> Arquitetura</a>
+      <a class="nav-link" href="/" title="Início"><span aria-hidden="true">⌂</span> Início</a>
+      <div class="sidebar-note">
+        <span class="note-icon" aria-hidden="true">⌑</span>
+        <strong>Automatize com cuidado</strong>
+        <p>Teste os fluxos antes de publicá-los e proteja as credenciais usadas por eles.</p>
+      </div>
+      <div class="sidebar-footer"><span class="live-dot"></span> Guia do n8n</div>
+    </aside>
 
-    <div class="header">
-        <h2 style="margin: 0; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">📚 Manual do n8n</h2>
-        <a href="/" class="back-btn">⬅️ Voltar à Tela Inicial</a>
-    </div>
+    <main class="main-content n8n-main">
+      <header class="topbar">
+        <div class="breadcrumb"><a href="/documentacao">Documentação</a><span aria-hidden="true">/</span><strong>n8n</strong></div>
+        <div class="topbar-actions"><span class="local-pill"><span class="live-dot"></span> GUIA DO LABORATÓRIO</span><a class="button button-quiet" href="/dashboard">Voltar aos serviços</a></div>
+      </header>
 
-    <div class="container">
-        <h1>⚡ Introdução ao n8n</h1>
-        <p>O <strong>n8n</strong> é o cérebro orquestrador do nosso Laboratório. Ele é uma ferramenta visual avançada que permite criar automações complexas e agentes de inteligência artificial ligando blocos lógicos uns aos outros, sem escrever código.</p>
-        
-        <ul>
-            <li><strong>No-Code / Low-Code:</strong> Você não precisa programar. Tudo é feito arrastando e conectando blocos lógicos na tela.</li>
-            <li><strong>Gatilhos (Triggers):</strong> Todo fluxo começa com um gatilho. Pode ser o recebimento de um e-mail, uma chamada de webhook, um formulário preenchido ou até mesmo um agendamento de hora em hora.</li>
-            <li><strong>Integração Ampla:</strong> Ele se conecta nativamente aos nossos modelos de IA locais (LiteLLM/Ollama), bancos de dados (Postgres, Qdrant) e milhares de ferramentas externas (Tika, Scraping, APIs do exército).</li>
-        </ul>
-
-        <h2>🧩 Como funcionam os Nodes (Nós)</h2>
-        <p>Um fluxo (workflow) de trabalho é inteiramente composto por vários <strong>Nodes</strong>. Cada Node executa uma ação ou processamento específico e isolado.</p>
-        <ol>
-            <li>Ao abrir o painel do n8n, você verá uma tela em branco chamada <em>canvas</em>.</li>
-            <li>Clicando no sinal de <span class="highlight">+</span>, você adiciona novos Nodes de acordo com a função desejada.</li>
-            <li>Você liga a saída (o círculo à direita) de um Node à entrada (círculo à esquerda) do próximo Node.</li>
-            <li>Os dados (geralmente estruturados em JSON) fluem através dessa linha, sendo processados etapa por etapa, de maneira muito similar a uma linha de montagem de fábrica.</li>
-        </ol>
-
-        <h2>🤖 Conectando a Inteligência Artificial</h2>
-        <p>No laboratório, nossos LLMs (Modelos de Linguagem de Grande Porte) rodam localmente e 100% privados na GPU via Ollama, protegidos e roteados pelo Gateway LiteLLM.</p>
-        <p>Para embutir capacidades de Inteligência Artificial dentro do seu workflow no n8n, você deve seguir estes passos fundamentais:</p>
-        <ul>
-            <li>No canvas, adicione um Node chamado <strong>"Basic LLM Chain"</strong> ou <strong>"AI Agent"</strong>, que ficam na aba de Advanced AI.</li>
-            <li>Conecte a ele um Node de Modelo de Linguagem (ex: <em>Chat OpenAI</em>).</li>
-            <li>Na configuração do modelo, selecione a credencial pré-configurada que aponta para o nosso LiteLLM local (ex: <code>http://litellm:4000/v1</code>).</li>
-            <li>No campo de Prompt, defina as instruções claras do que a IA deve analisar. Quando o fluxo de execução chegar ali, a IA processará o texto, analisará a requisição e devolverá o resultado estruturado para o próximo Node.</li>
-        </ul>
-
-        <h2>🎯 O Primeiro Exercício Prático</h2>
-        <p>A teoria só ganha sentido na prática. Quando você iniciar a Área de Projetos, o seu primeiro desafio será criar uma interface de comunicação máquina-a-máquina.</p>
-        
-        <p>Seu objetivo será criar um fluxo que é acionado via <strong>Webhook</strong>. Ele deve operar da seguinte forma:</p>
-        <ul>
-            <li>O fluxo fica escutando uma porta de rede aguardando chamadas.</li>
-            <li>O webhook receberá uma requisição POST contendo um JSON. Exemplo: <code>{"pergunta": "Qual a capital do Brasil?"}</code>.</li>
-            <li>Esse JSON é passado para um Node de Inteligência Artificial, que fará a compreensão da pergunta.</li>
-            <li>O fluxo processará a saída da IA e devolverá a resposta final estruturada (HTTP 200 OK) de volta para o cliente que chamou o Webhook.</li>
-        </ul>
-        
-        <div class="footer-nav">
-            <a href="/">Ir para a Tela Principal e Acessar o n8n</a>
+      <section class="n8n-hero" aria-labelledby="page-title">
+        <div class="n8n-hero-copy">
+          <p class="eyebrow">AUTOMAÇÃO VISUAL · WORKFLOWS · AGENTES</p>
+          <h1 id="page-title">Guia completo do n8n</h1>
+          <p>Aprenda a montar, testar e publicar automações que conectam serviços, APIs e modelos de IA do Laboratório de IA.</p>
+          <div class="n8n-hero-actions">
+            <a class="button button-link" href="http://localhost:5678" target="_blank" rel="noopener noreferrer">Abrir o n8n <span aria-hidden="true">↗</span></a>
+            <a class="n8n-text-link" href="https://docs.n8n.io/" target="_blank" rel="noopener noreferrer">Documentação oficial <span aria-hidden="true">↗</span></a>
+          </div>
         </div>
-    </div>
+        <div class="n8n-hero-badge" aria-hidden="true"><span>⚡</span><small>WORKFLOW<br>BUILDER</small></div>
+      </section>
+
+      <section class="n8n-facts" aria-label="Resumo do serviço">
+        <div><span>ENDEREÇO NO NAVEGADOR</span><code>http://localhost:5678</code></div>
+        <div><span>ENDEREÇO ENTRE CONTAINERS</span><code>http://n8n:5678</code></div>
+        <div><span>ARMAZENAMENTO</span><code>PostgreSQL · n8n_storage</code></div>
+      </section>
+
+      <div class="n8n-guide-layout">
+        <article class="n8n-article">
+          <section class="n8n-section" id="visao-geral">
+            <p class="eyebrow">01 · VISÃO GERAL</p>
+            <h2>O que é o n8n</h2>
+            <p>O n8n é uma plataforma de automação visual. Um <strong>workflow</strong> recebe um evento, processa dados em uma sequência de <strong>nodes</strong> e pode chamar APIs, bancos de dados ou modelos de IA. É uma ferramenta low-code: muitas automações não exigem código, mas conhecer JSON, HTTP e expressões ajuda a criar fluxos mais confiáveis.</p>
+            <div class="n8n-callout"><strong>Onde ele se encaixa</strong><p>Use o n8n para conectar sistemas e automatizar processos. O Open WebUI é a interface de conversa, o Flowise é um construtor de cadeias e agentes, e o n8n coordena etapas e integrações. Ele não traz um modelo de linguagem próprio: neste laboratório, os modelos são servidos pelo Ollama e acessados pelo LiteLLM.</p></div>
+            <p>Um fluxo pode iniciar manualmente, em um horário definido, por uma chamada HTTP recebida (webhook) ou por um evento de uma integração. O node HTTP Request permite conectar APIs mesmo quando não existe um node específico para o serviço.</p>
+          </section>
+
+          <section class="n8n-section" id="acessar">
+            <p class="eyebrow">02 · PRIMEIRO ACESSO</p>
+            <h2>Iniciar e abrir o serviço</h2>
+            <ol class="n8n-steps">
+              <li>Abra o <a href="/dashboard">dashboard do Laboratório</a> e inicie o serviço <strong>n8n Orchestrator</strong>. Se o laboratório inteiro não estiver ativo, o PostgreSQL também precisa estar em execução.</li>
+              <li>Acesse <a href="http://localhost:5678" target="_blank" rel="noopener noreferrer">http://localhost:5678</a>. Na primeira utilização, crie a conta proprietária solicitada pelo n8n. Cada instalação local mantém seus próprios usuários e workflows.</li>
+              <li>Na lista de workflows, crie um fluxo novo e dê a ele um nome que explique o objetivo, por exemplo <em>Consultar saúde do MCP</em>.</li>
+            </ol>
+            <p>O n8n pertence aos perfis Compose <code>full</code> e <code>workflows</code>. Se estiver usando o terminal na pasta do projeto, também é possível iniciar o perfil de workflows com o comando abaixo; o Compose inicia as dependências necessárias.</p>
+            <pre class="n8n-code"><code>docker compose --profile workflows up -d n8n</code></pre>
+            <div class="n8n-callout n8n-callout-warning"><strong>Se a tela não abrir</strong><p>Confirme no dashboard que n8n e PostgreSQL estão ativos. O painel usa a porta local 5678; se outro programa já estiver usando essa porta, o container pode não iniciar. Veja também <a href="#diagnostico">Diagnóstico</a>.</p></div>
+            <div class="n8n-mini-grid">
+              <div><strong>Persistência</strong><p>Workflows, credenciais e estado ficam no banco <code>n8n_db</code> e no volume <code>n8n_storage</code>.</p></div>
+              <div><strong>Chave de criptografia</strong><p>A configuração do projeto usa <code>N8N_ENCRYPTION_KEY</code> no arquivo local <code>.env</code>. Preserve essa chave ao fazer backup ou reinstalar.</p></div>
+            </div>
+          </section>
+
+          <section class="n8n-section" id="conceitos">
+            <p class="eyebrow">03 · FUNDAMENTOS</p>
+            <h2>Como um workflow funciona</h2>
+            <dl class="n8n-glossary">
+              <div><dt>Trigger (gatilho)</dt><dd>Inicia uma execução: por exemplo, Manual Trigger, Schedule Trigger ou Webhook.</dd></div>
+              <div><dt>Node</dt><dd>Uma etapa que recebe dados, executa uma ação e envia o resultado adiante.</dd></div>
+              <div><dt>Conexão</dt><dd>Linha que define para onde a saída de um node é enviada. Ramos diferentes podem tratar condições distintas.</dd></div>
+              <div><dt>Item e JSON</dt><dd>Os nodes normalmente trocam uma lista de itens. Cada item contém dados JSON e pode conter dados binários, como arquivos.</dd></div>
+              <div><dt>Credencial</dt><dd>Conjunto protegido de dados de autenticação reutilizável por um ou mais nodes.</dd></div>
+              <div><dt>Execução</dt><dd>Uma rodada do workflow. O resultado de cada node ajuda a localizar erros e entender a transformação dos dados.</dd></div>
+            </dl>
+            <h3>Mapear e transformar dados</h3>
+            <p>Abra o painel <strong>Input</strong> de um node para inspecionar os dados recebidos. Para reutilizar um valor, selecione-o no painel ou use uma expressão. Por exemplo, <code>&#123;&#123; $json.nome &#125;&#125;</code> lê <code>nome</code> do item atual; em um webhook, o corpo costuma estar em <code>&#123;&#123; $json.body.pergunta &#125;&#125;</code>. Os nomes de propriedades dependem do JSON real de entrada.</p>
+            <p>O node <strong>Edit Fields (Set)</strong> é útil para criar, renomear ou remover campos. Nodes como If, Switch, Merge e Loop Over Items controlam o caminho. Para aprender a expressão certa, execute o fluxo com dados de teste e inspecione o Input antes de mapear os campos.</p>
+            <p><a href="https://docs.n8n.io/data/data-mapping/data-mapping-ui/" target="_blank" rel="noopener noreferrer">Guia oficial de mapeamento de dados</a></p>
+          </section>
+
+          <section class="n8n-section" id="primeiro-fluxo">
+            <p class="eyebrow">04 · EXERCÍCIO 1</p>
+            <h2>Consultar a saúde da API Python MCP</h2>
+            <p>Este exercício faz uma chamada HTTP de dentro do n8n para outro serviço do laboratório. Os containers compartilham a rede Docker; por isso, o endereço usa o nome do serviço <code>python-mcp</code>, e não <code>localhost</code>.</p>
+            <div class="n8n-flowline"><span>Manual Trigger</span><b>→</b><span>HTTP Request</span><b>→</b><span>Inspecionar JSON</span></div>
+            <ol class="n8n-steps">
+              <li>Adicione o node <strong>Manual Trigger</strong>. Ele permite iniciar o exercício pelo botão de execução, sem publicar o workflow.</li>
+              <li>Adicione <strong>HTTP Request</strong> e conecte a saída do gatilho a ele.</li>
+              <li>Configure <strong>Method</strong> como <code>GET</code> e <strong>URL</strong> como <code>http://python-mcp:8000/health</code>. Não é necessária autenticação para esse endpoint dentro da rede local do compose.</li>
+              <li>Execute o workflow. Se a resposta indicar <code>status: healthy</code> e <code>service: python-mcp</code>, a chamada funcionou. Se houver erro de conexão, confirme que Python MCP está iniciado no dashboard.</li>
+            </ol>
+            <div class="n8n-code-label">Exemplo de resposta</div>
+            <pre class="n8n-code"><code>{
+  "status": "healthy",
+  "service": "python-mcp",
+  "version": "3.0.0",
+  "mcp_server": "GenAI-MCP-Server"
+}</code></pre>
+            <p>Como próximo passo, altere a requisição para <code>POST http://python-mcp:8000/run-task</code> e envie o corpo JSON <code>&#123; "task_type": "status" &#125;</code>. Essa tarefa consulta os serviços do laboratório e devolve um relatório; serviços opcionais desligados aparecerão como offline.</p>
+          </section>
+
+          <section class="n8n-section" id="webhook-llm">
+            <p class="eyebrow">05 · EXERCÍCIO 2</p>
+            <h2>Criar uma API de perguntas com o LiteLLM</h2>
+            <p>Neste workflow, um webhook recebe a pergunta, o HTTP Request envia o texto ao endpoint compatível com OpenAI do LiteLLM, e Respond to Webhook devolve a resposta ao cliente.</p>
+            <div class="n8n-flowline"><span>Webhook</span><b>→</b><span>HTTP Request · LiteLLM</span><b>→</b><span>Respond to Webhook</span></div>
+
+            <h3>Etapa A · Configurar o webhook</h3>
+            <ol class="n8n-steps">
+              <li>Crie um workflow novo e adicione <strong>Webhook</strong> como primeiro node.</li>
+              <li>Configure <strong>HTTP Method</strong> = <code>POST</code>, <strong>Path</strong> = <code>perguntar</code> e <strong>Respond</strong> = <em>Using Respond to Webhook Node</em>.</li>
+              <li>Para testar, selecione a URL de teste e clique em <strong>Listen for Test Event</strong> (ou no botão equivalente da sua versão). Mantenha essa espera ativa enquanto envia a chamada de teste abaixo.</li>
+            </ol>
+
+            <h3>Etapa B · Chamar o modelo</h3>
+            <ol class="n8n-steps">
+              <li>Adicione <strong>HTTP Request</strong> depois do webhook. Configure método <code>POST</code>, URL <code>http://litellm:4000/v1/chat/completions</code>, tipo do corpo <code>JSON</code> e <code>Content-Type: application/json</code>.</li>
+              <li>No corpo JSON, use o modo <strong>Expression</strong> para inserir a expressão abaixo. O texto da pergunta vem do corpo recebido pelo webhook:</li>
+            </ol>
+            <pre class="n8n-code"><code>&#123;&#123; (&#123;
+  model: "llama3.2:3b",
+  messages: [
+    &#123; role: "system", content: "Responda em português de forma clara e objetiva." &#125;,
+    &#123; role: "user", content: $json.body.pergunta &#125;
+  ]
+&#125;) &#125;&#125;</code></pre>
+              <ol class="n8n-steps" start="3">
+              <li>Configure autenticação pelo seletor de credenciais do HTTP Request: crie uma credencial genérica <strong>Header Auth</strong> com nome <code>Authorization</code> e valor <code>Bearer &lt;LITELLM_MASTER_KEY&gt;</code>. Para consultar sua chave, abra o <code>.env</code> na pasta do projeto (por exemplo, execute <code>notepad .env</code> no PowerShell nessa pasta) e copie o valor depois do sinal <code>=</code>. Salve a chave como credencial do n8n; não a escreva no prompt, no corpo JSON nem em screenshots compartilhados.</li>
+              <li>Confirme que LiteLLM e Ollama estão ativos e que o modelo <code>llama3.2:3b</code> está disponível no Ollama. Um modelo pode demorar mais na primeira execução, especialmente em computadores sem GPU compatível.</li>
+            </ol>
+
+            <h3>Etapa C · Devolver uma resposta JSON</h3>
+            <ol class="n8n-steps">
+              <li>Adicione <strong>Respond to Webhook</strong> depois do HTTP Request.</li>
+              <li>Escolha <strong>Respond With</strong> = <em>JSON</em>. No corpo da resposta, use uma expressão para selecionar os campos desejados:</li>
+            </ol>
+            <pre class="n8n-code"><code>&#123;&#123; (&#123;
+  resposta: $json.choices[0].message.content,
+  modelo: $json.model
+&#125;) &#125;&#125;</code></pre>
+            <p>Execute o workflow enquanto o webhook de teste estiver escutando. No PowerShell, envie esta requisição na máquina onde o laboratório está instalado:</p>
+            <pre class="n8n-code"><code>$payload = @&#123; pergunta = "Explique em uma frase o que é uma API." &#125; | ConvertTo-Json
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5678/webhook-test/perguntar" `
+  -ContentType "application/json" `
+  -Body $payload</code></pre>
+            <p>Após verificar o resultado, publique o workflow. A URL de produção usa <code>/webhook/perguntar</code> no lugar de <code>/webhook-test/perguntar</code>. A URL de teste só funciona enquanto o editor está aguardando um evento; a URL de produção funciona quando o workflow está publicado.</p>
+            <div class="n8n-callout"><strong>Observação sobre a interface</strong><p>Os nomes e a posição de alguns controles variam entre versões do n8n. A lógica permanece: ativar a espera do webhook de teste, executar uma chamada HTTP com JSON, mapear o resultado e depois publicar para registrar o endpoint de produção.</p></div>
+          </section>
+
+          <section class="n8n-section" id="integracoes">
+            <p class="eyebrow">06 · SERVIÇOS DO LABORATÓRIO</p>
+            <h2>Endereços para integrações internas</h2>
+            <p>Estes nomes de host só resolvem diretamente para aplicações conectadas à rede Docker do laboratório. Use-os nos nodes executados pelo n8n:</p>
+            <div class="n8n-table-wrap"><table class="n8n-table"><thead><tr><th>Serviço</th><th>Endereço interno</th><th>Uso comum</th></tr></thead><tbody>
+              <tr><td>LiteLLM</td><td><code>http://litellm:4000</code></td><td>API de chat em <code>/v1/chat/completions</code>; embeddings em <code>/v1/embeddings</code>.</td></tr>
+              <tr><td>Python MCP</td><td><code>http://python-mcp:8000</code></td><td>Saúde em <code>/health</code>, tarefas REST em <code>/run-task</code>, MCP Streamable HTTP em <code>/mcp</code>.</td></tr>
+              <tr><td>Ollama</td><td><code>http://ollama:11434</code></td><td>API direta de modelos; para chamadas de chat neste laboratório, prefira o gateway LiteLLM.</td></tr>
+              <tr><td>Apache Tika</td><td><code>http://tika:9998</code></td><td>Extração de texto e metadados de documentos. Serviço opcional do perfil de documentos.</td></tr>
+              <tr><td>Browserless</td><td><code>http://browserless:3000</code></td><td>Navegação headless e scraping; requer serviço ativo e token.</td></tr>
+              <tr><td>Qdrant</td><td><code>http://qdrant:6333</code></td><td>Banco vetorial; requer uma coleção e um fluxo de ingestão/consulta de embeddings configurado.</td></tr>
+            </tbody></table></div>
+            <div class="n8n-callout n8n-callout-warning"><strong>Dentro do container, <code>localhost</code> significa o próprio container do n8n</strong><p>Para acessar outro container, use o nome do serviço, como <code>http://litellm:4000</code>. Para chamar o webhook do n8n a partir do Windows, use <code>http://localhost:5678/webhook/...</code>. Um serviço opcional desligado não responderá, mesmo que o endereço esteja correto.</p></div>
+            <p>O Python MCP oferece uma API REST simples e também um endpoint MCP em <code>http://python-mcp:8000/mcp</code>. Para integrações MCP avançadas, confira se a versão instalada oferece os nodes de cliente MCP e siga as instruções oficiais para o transporte HTTP; o endpoint REST <code>/run-task</code> é a alternativa direta deste laboratório.</p>
+          </section>
+
+          <section class="n8n-section" id="agentes">
+            <p class="eyebrow">07 · IA E AGENTES</p>
+            <h2>Quando usar um modelo ou um agente</h2>
+            <p>Uma chamada de chat costuma bastar quando o workflow precisa resumir, classificar, extrair campos ou redigir texto. Um agente é adequado quando o modelo precisa escolher entre ferramentas disponíveis para cumprir uma tarefa. Quanto mais ferramentas e permissões forem dadas ao agente, maior a necessidade de limitar escopo e validar resultados.</p>
+            <ul class="n8n-bullets">
+              <li>Comece com uma tarefa delimitada e uma saída esperada. Peça JSON com campos definidos quando outra etapa for consumi-la.</li>
+              <li>Trate o texto recebido do usuário como dado; não permita que ele altere segredos, instruções de sistema ou controles do workflow.</li>
+              <li>Valide a resposta antes de usá-la para enviar mensagens, alterar dados ou chamar sistemas externos.</li>
+              <li>Registre e examine as execuções durante o desenvolvimento. Evite armazenar dados pessoais ou sensíveis sem necessidade.</li>
+            </ul>
+            <p>O fluxo do exercício anterior usa a API de chat do LiteLLM por HTTP Request e oferece um ponto de partida simples para prompts. Para nodes de IA e agentes do n8n, a interface pode variar com a versão e os modelos disponíveis; conecte o node de modelo ao endpoint LiteLLM suportado pelo node e selecione o modelo publicado no gateway.</p>
+            <h3>Desempenho e estabilidade</h3>
+            <ul class="n8n-bullets">
+              <li>Comece com poucos itens e volumes pequenos; aumente o lote gradualmente. Respostas grandes e arquivos binários podem consumir bastante memória e armazenamento.</li>
+              <li>Evite paralelizar muitas chamadas ao modelo em computadores com pouca RAM ou VRAM. Ollama compartilha os recursos da máquina com os outros serviços.</li>
+              <li>Use paginação ou lotes para APIs que devolvem muitos registros. Evite repetir consultas ou transferir campos que o restante do fluxo não usa.</li>
+              <li>Configure tentativas e tratamento de erro considerando se a ação é segura para repetir; uma requisição POST pode criar itens duplicados.</li>
+              <li>Se o workflow tratar arquivos, limite tamanho e frequência e acompanhe o espaço usado pelo volume persistente.</li>
+            </ul>
+          </section>
+
+          <section class="n8n-section" id="salvar-publicar">
+            <p class="eyebrow">08 · CICLO DE DESENVOLVIMENTO</p>
+            <h2>Testar, salvar e publicar</h2>
+            <ul class="n8n-bullets">
+              <li><strong>Teste por node:</strong> execute uma etapa e confira Input e Output antes de avançar. Use exemplos pequenos.</li>
+              <li><strong>Salvar:</strong> o n8n salva alterações no servidor enquanto você edita. Confirme que não há indicador de salvamento pendente antes de fechar.</li>
+              <li><strong>Publicar:</strong> publique quando o workflow tiver um gatilho de produção, como webhook ou agendamento. A versão publicada é a que atende execuções de produção.</li>
+              <li><strong>Despublicar:</strong> se não quiser mais receber eventos, despublique o workflow ou remova/desative o gatilho conforme o caso.</li>
+              <li><strong>Executions:</strong> abra a aba de execuções para filtrar sucessos e falhas, examinar a entrada/saída e tentar novamente uma execução com falha.</li>
+            </ul>
+            <p>Fluxos manuais são bons para aprendizagem. Antes de publicar, confirme o webhook de produção, as credenciais, os serviços dependentes, o formato da resposta e se a rotina pode ser repetida com segurança.</p>
+          </section>
+
+          <section class="n8n-section" id="credenciais-seguranca">
+            <p class="eyebrow">09 · SEGURANÇA E DADOS</p>
+            <h2>Credenciais, webhooks e persistência</h2>
+            <ul class="n8n-bullets">
+              <li>Guarde tokens e senhas em <strong>Credentials</strong>. Não os inclua em prompts, URLs, expressões, dados de teste ou screenshots.</li>
+              <li>O endpoint n8n deste projeto está publicado apenas em <code>127.0.0.1:5678</code> no host. Webhooks não são automaticamente acessíveis pela internet ou por outros computadores.</li>
+              <li>Configure autenticação no Webhook quando ele for consumido por outro sistema. O n8n oferece opções como Basic, Header e JWT; use allowlist de IP quando fizer sentido.</li>
+              <li>Evite expor a porta do n8n na rede sem planejamento de autenticação, HTTPS, firewall e atualizações. Um webhook publicado pode executar a lógica configurada sempre que for chamado.</li>
+              <li>As execuções podem conter prompts, respostas e dados recebidos. Limite o que grava e quem pode abrir a interface.</li>
+              <li>Não apague nem substitua <code>N8N_ENCRYPTION_KEY</code> no <code>.env</code> sem planejar a migração de credenciais existentes. Guarde backup seguro do <code>.env</code>.</li>
+              <li>Em <a href="/configuracoes">Configurações</a>, o reset de n8n apaga <code>n8n_db</code> e <code>n8n_storage</code>, incluindo workflows, credenciais e arquivos persistentes do serviço. Exporte o que quiser preservar antes.</li>
+            </ul>
+          </section>
+
+          <section class="n8n-section" id="diagnostico">
+            <p class="eyebrow">10 · DIAGNÓSTICO</p>
+            <h2>Problemas comuns e como resolver</h2>
+            <div class="n8n-troubleshooting">
+              <details><summary>A página do n8n não abre</summary><p>Inicie n8n pelo dashboard. Confira se o PostgreSQL está saudável e se a porta 5678 não está ocupada. Consulte os logs do serviço n8n no painel/Docker.</p></details>
+              <details><summary>Connection refused no HTTP Request</summary><p>Dentro do container, troque <code>localhost</code> pelo hostname do serviço de destino, como <code>litellm</code> ou <code>python-mcp</code>. Confira se o serviço está iniciado e se pertence ao mesmo perfil/rede.</p></details>
+              <details><summary>O LiteLLM retorna 401 ou 403</summary><p>Verifique a credencial Header Auth do HTTP Request: cabeçalho <code>Authorization</code> e valor no formato <code>Bearer ...</code>. Confirme que usou a chave de LiteLLM do <code>.env</code>, sem aspas ou espaços extras. Não compartilhe o valor da chave.</p></details>
+              <details><summary>O modelo não existe ou demora para responder</summary><p>Confira se o LiteLLM está ativo e se o Ollama possui o modelo solicitado. Veja os logs do LiteLLM/Ollama e confirme que o identificador usado no corpo corresponde a um modelo definido na configuração atual do gateway. Primeira carga pode demorar.</p></details>
+              <details><summary>O webhook de teste retorna 404</summary><p>No editor, selecione <strong>Listen for Test Event</strong> e envie a requisição para <code>/webhook-test/...</code> enquanto a espera estiver ativa. Para <code>/webhook/...</code>, publique o workflow e confirme o path configurado.</p></details>
+              <details><summary>A resposta do webhook não tem o campo esperado</summary><p>Abra a execução e confira o JSON de saída do node anterior. Corrija a expressão de acordo com a estrutura real; por exemplo, alguns endpoints retornam conteúdo em <code>choices[0].message.content</code>.</p></details>
+              <details><summary>Credencial não pode ser descriptografada depois de reinstalar</summary><p>Confirme que o arquivo <code>.env</code> mantém a mesma <code>N8N_ENCRYPTION_KEY</code> que foi usada pela instalação anterior. O banco e a chave precisam corresponder.</p></details>
+            </div>
+          </section>
+
+          <section class="n8n-section" id="referencias">
+            <p class="eyebrow">11 · PARA CONTINUAR</p>
+            <h2>Referências oficiais e checklist</h2>
+            <ul class="n8n-reference-list">
+              <li><a href="https://docs.n8n.io/build/understand-workflows/" target="_blank" rel="noopener noreferrer">Conceitos e estrutura de workflows</a></li>
+              <li><a href="https://docs.n8n.io/build/work-with-data/expressions-versus-data-nodes/" target="_blank" rel="noopener noreferrer">Expressões e transformação de dados</a></li>
+              <li><a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/" target="_blank" rel="noopener noreferrer">Node HTTP Request</a></li>
+              <li><a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/" target="_blank" rel="noopener noreferrer">Node Webhook: URLs de teste/produção, autenticação e respostas</a></li>
+              <li><a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook/" target="_blank" rel="noopener noreferrer">Node Respond to Webhook</a></li>
+              <li><a href="https://docs.n8n.io/build/understand-workflows/save-and-publish-workflows/" target="_blank" rel="noopener noreferrer">Salvar e publicar workflows</a></li>
+              <li><a href="https://docs.n8n.io/build/understand-workflows/understand-executions/view-all-executions/" target="_blank" rel="noopener noreferrer">Consultar e depurar execuções</a></li>
+            </ul>
+            <div class="n8n-checklist"><strong>Antes de publicar, confira:</strong><span> ☐ O fluxo foi testado com dados de exemplo</span><span> ☐ Credenciais estão em Credentials</span><span> ☐ Os serviços necessários estão ativos</span><span> ☐ O webhook está protegido quando necessário</span><span> ☐ A saída e os registros não expõem dados sensíveis</span></div>
+          </section>
+
+          <div class="n8n-end-actions"><a class="button button-link" href="http://localhost:5678" target="_blank" rel="noopener noreferrer">Abrir n8n</a><a class="button button-quiet" href="/documentacao">Voltar à documentação</a></div>
+        </article>
+
+        <nav class="n8n-toc" aria-label="Nesta página">
+          <p class="eyebrow">NESTE GUIA</p>
+          <a href="#visao-geral">Visão geral</a>
+          <a href="#acessar">Primeiro acesso</a>
+          <a href="#conceitos">Fundamentos</a>
+          <a href="#primeiro-fluxo">Exercício: API MCP</a>
+          <a href="#webhook-llm">Exercício: webhook + IA</a>
+          <a href="#integracoes">Integrações</a>
+          <a href="#agentes">IA e agentes</a>
+          <a href="#salvar-publicar">Testar e publicar</a>
+          <a href="#credenciais-seguranca">Segurança e dados</a>
+          <a href="#diagnostico">Diagnóstico</a>
+          <a href="#referencias">Referências</a>
+        </nav>
+      </div>
+
+      <footer class="page-footer"><span>Escola de Comunicações · Seção Delta</span><span>Guia do n8n · Laboratório de Inteligência Artificial</span></footer>
+    </main>
+  </div>
 </body>
 </html>

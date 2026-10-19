@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0b1020">
   <title>Laboratório IA | Configurações</title>
   <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016-2">
-  <script defer src="/static/js/settings.js?v=20261016-3"></script>
+  <script defer src="/static/js/settings.js?v=20261019-github-source"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -49,10 +49,10 @@
         <div class="update-panel-main">
           <p class="eyebrow">MANUTENÇÃO DO SISTEMA</p>
           <h2 id="update-title">Atualizar o laboratório</h2>
-          <p>Verifique novas alterações no branch configurado do GitHub. A atualização sincroniza o código, baixa imagens novas e recria os containers necessários.</p>
+          <p>Consulta diretamente o branch padrão publicado no GitHub. A sincronização usa essa versão como fonte, mesmo que a cópia local tenha alterações; o código local será guardado em backup antes da aplicação.</p>
           <div class="update-status" id="update-status" data-state="idle" role="status" aria-live="polite">
             <span class="update-status-dot" aria-hidden="true"></span>
-            <span id="update-status-text">Verifique se há uma versão nova no GitHub.</span>
+          <span id="update-status-text">Consulte o branch padrão do GitHub para verificar ou reaplicar a versão publicada.</span>
           </div>
           <p class="update-version" id="update-version" hidden></p>
         </div>
@@ -113,8 +113,8 @@
     <div class="update-dialog-mark" aria-hidden="true">↻</div>
     <p class="eyebrow">ATUALIZAÇÃO DO SISTEMA</p>
     <h2 id="update-dialog-title">Aplicar a atualização?</h2>
-    <p class="update-dialog-copy">O laboratório baixará a nova versão do GitHub, atualizará as imagens e poderá reiniciar todos os containers. O dashboard ficará indisponível por alguns instantes durante a atualização.</p>
-    <p class="update-dialog-warning">Notebooks, bancos de dados, modelos e outros dados guardados nos volumes serão preservados. A operação exige uma conexão com o GitHub e pode baixar vários gigabytes.</p>
+    <p class="update-dialog-copy">O laboratório sincronizará o branch padrão do GitHub, atualizará as imagens e recriará os containers. O dashboard ficará indisponível por alguns instantes durante a aplicação.</p>
+    <p class="update-dialog-warning">Alterações e arquivos locais do Git serão guardados em backup e não serão mesclados com o GitHub. O arquivo .env e os dados dos volumes serão preservados. A operação exige conexão com o GitHub e pode baixar vários gigabytes.</p>
     <label class="reset-confirm-label" for="update-confirm-input">Para confirmar, digite <code>ATUALIZAR LABORATÓRIO</code></label>
     <input id="update-confirm-input" class="reset-confirm-input" type="text" autocomplete="off" spellcheck="false">
     <p class="reset-input-error" id="update-input-error" role="alert" hidden>O texto digitado não corresponde à confirmação solicitada.</p>
