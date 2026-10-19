@@ -51,7 +51,7 @@
     updateVersion.textContent = versions.join(' · ');
     updateVersion.hidden = versions.length === 0;
     updateApplyButton.disabled = !status.canUpdate || Boolean(activeUpdateJobId);
-    updateApplyButton.textContent = status.pendingApply ? 'Tentar aplicar novamente' : 'Atualizar sistema';
+    updateApplyButton.textContent = status.pendingApply ? 'Atualizar sistema' : 'Reaplicar versão do GitHub';
   }
 
   function setUpdateBusy(busy) {
