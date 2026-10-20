@@ -143,7 +143,6 @@ body::after {
 .eyebrow,
 .card-kicker,
 .card-index,
-.status-badge,
 .footer-caption {
     font-size: 0.66rem;
     font-weight: 650;
@@ -218,8 +217,8 @@ h1 span {
 
 .destination-grid {
     display: grid;
-    width: min(100%, 890px);
-    grid-template-columns: 1.15fr 0.85fr;
+    width: min(100%, 680px);
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     margin: 0 auto;
     animation: rise-in 850ms 100ms ease both;
@@ -288,12 +287,6 @@ h1 span {
     height: 23px;
 }
 
-.card-icon--classroom {
-    border-color: rgba(137, 150, 174, 0.18);
-    background: rgba(137, 150, 174, 0.07);
-    color: #8390a7;
-}
-
 .card-index {
     padding-top: 7px;
     color: #7f8ba2;
@@ -312,10 +305,6 @@ h1 span {
     font-size: 0.61rem;
 }
 
-.destination-card--classroom .card-kicker {
-    color: #77849b;
-}
-
 .card-copy h2 {
     margin: 0;
     font-size: clamp(1.55rem, 2.5vw, 1.9rem);
@@ -329,19 +318,6 @@ h1 span {
     color: #a1acc0;
     font-size: 0.94rem;
     line-height: 1.55;
-}
-
-.destination-card--classroom .card-copy h2 {
-    color: #c5ccda;
-}
-
-.destination-card--classroom .card-copy > p:last-child {
-    color: #7f8ba0;
-}
-
-.destination-card--classroom:disabled {
-    cursor: not-allowed;
-    opacity: 1;
 }
 
 .card-action {
@@ -365,33 +341,6 @@ h1 span {
 
 .destination-card--lab:hover .card-action > span {
     transform: translate(3px, -2px);
-}
-
-.card-action--muted {
-    color: #7f8ba0;
-    font-size: 0.76rem;
-}
-
-.status-badge {
-    display: inline-flex;
-    min-height: 27px;
-    align-items: center;
-    gap: 7px;
-    padding: 0 9px;
-    border: 1px solid rgba(137, 150, 174, 0.18);
-    border-radius: 999px;
-    background: rgba(137, 150, 174, 0.06);
-    color: #8995a9;
-    font-size: 0.56rem;
-    letter-spacing: 0.08em;
-    white-space: nowrap;
-}
-
-.status-dot--muted {
-    width: 6px;
-    height: 6px;
-    background: #8490a4;
-    box-shadow: none;
 }
 
 .card-orbit {
@@ -515,10 +464,6 @@ h1 span {
         border-radius: 19px;
     }
 
-    .destination-card--classroom {
-        min-height: 242px;
-    }
-
     .page-footer {
         align-items: flex-start;
         flex-direction: column;
@@ -542,10 +487,6 @@ h1 span {
         font-size: 0.56rem;
     }
 
-    .status-badge {
-        font-size: 0.5rem;
-        padding: 0 7px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

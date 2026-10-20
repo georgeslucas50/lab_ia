@@ -41,10 +41,9 @@
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .manual-brand { display: grid; grid-template-columns: 40px 1fr; column-gap: 11px; align-items: center; padding: 0 0 22px; margin-bottom: 22px; border-bottom: 1px solid #28334a; color: #f0efff; text-decoration: none; }
-        .manual-brand-mark { display: grid; width: 40px; height: 40px; grid-row: span 2; place-items: center; border: 1px solid #9a8cff55; border-radius: 13px; background: linear-gradient(140deg, #9b84ff, #644de1); box-shadow: 0 7px 24px #7b66ed40; font-size: 21px; }
-        .manual-brand strong { align-self: end; font-size: 14px; }
-        .manual-brand small { align-self: start; color: #8996ae; font-size: 11px; }
+        .manual-brand { display: flex; align-items: center; gap: 11px; padding: 0 0 22px; margin-bottom: 22px; border-bottom: 1px solid #28334a; color: #f0efff; text-decoration: none; }
+        .manual-brand-mark { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border: 1px solid #9a8cff55; border-radius: 13px; background: linear-gradient(140deg, #9b84ff, #644de1); box-shadow: 0 7px 24px #7b66ed40; font-size: 21px; }
+        .manual-brand strong { font-size: 14px; }
         .sidebar h3 { color: #b9afff; font-size: 1rem; letter-spacing: .03em; text-transform: none; }
         .sidebar a:hover, .sidebar a.active { background: #7967e81a; color: #c9c0ff; border-left-color: #9a8cff; }
         .back-btn { border: 1px solid #8170eb; background: linear-gradient(135deg, #806ce4, #5947bd); }
@@ -80,7 +79,7 @@
 <body>
     <!-- Menu Lateral -->
     <div class="sidebar">
-        <a href="/" class="manual-brand"><span class="manual-brand-mark" aria-hidden="true">✳</span><strong>Laboratório IA</strong><small>Projeto pessoal</small></a>
+        <a href="/" class="manual-brand"><span class="manual-brand-mark" aria-hidden="true">✳</span><strong>Laboratório IA</strong></a>
         <h3>🧠 Conteúdo do guia</h3>
         <ul>
             <li><a href="#introducao">1. Introdução ao Motor</a></li>
