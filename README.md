@@ -1,5 +1,7 @@
 # Laboratório de IA
 
+Desenvolvido por **Georges Lucas Silva Queiroz de Albuquerque** · [GitHub](https://github.com/georgeslucas50)
+
 Ambiente local de estudo para modelos, aplicações de chat, automações e serviços de apoio a RAG. O projeto usa Docker Compose dentro do Ubuntu no WSL 2. A GPU NVIDIA é opcional; com driver compatível, o Ollama usa a GPU, e sem ela funciona em CPU.
 
 ## Instalação no Windows
@@ -61,21 +63,6 @@ Em instalações antigas feitas pelo ZIP, execute o instalador atualizado para q
 
 O JupyterLab usa o volume persistente `jupyter_storage`, inclui bibliotecas Python para dados e APIs de IA e recebe endpoints internos por variáveis de ambiente (`OLLAMA_HOST`, `OPENAI_BASE_URL`, `QDRANT_URL`, `NEO4J_URI`, `REDIS_URL`, `PYTHON_MCP_URL` e outras). Para entrar com o token gerado no `.env`, execute `scripts\abrir_jupyter.ps1`. As instruções e um exemplo inicial ficam em `learning\notebooks\INICIO.md`.
 
-## Operação
-
-O instalador inicia a stack de aprendizagem. Para ver logs e estado, use PowerShell na pasta do projeto:
-
-```powershell
-$wslProject = (wsl -d Ubuntu-24.04 -u root -- wslpath -a (Get-Location).Path).Trim()
-wsl -d Ubuntu-24.04 -u root --cd $wslProject docker compose --profile full ps
-wsl -d Ubuntu-24.04 -u root --cd $wslProject docker compose --profile full stop
-wsl -d Ubuntu-24.04 -u root --cd $wslProject docker compose --profile full up -d
-```
-
-`stop` para sem apagar dados. Para incluir Portainer numa aula, acrescente `--profile management` aos comandos `up` e `ps` junto com `--profile full`.
-
-Para remover a stack e seus volumes, execute `scripts\destruir_ambiente.ps1` e digite `APAGAR`. Essa operação apaga bancos, histórico e modelos armazenados nos volumes do laboratório. Ela não remove a distribuição Ubuntu nem executa limpeza global do Docker.
-
 ## Modelos locais
 
 O laboratório baixa `llama3.2:3b` para um primeiro uso leve e `nomic-embed-text` para embeddings. Outros modelos configurados no gateway, como `llama3.1:8b`, são baixados pelo Ollama quando solicitados. Em uma GPU com 8 GB de VRAM, comece pelo modelo 3B; o 8B pode exigir quantização e reduzir espaço disponível para contexto.
@@ -87,11 +74,5 @@ wsl -d Ubuntu-24.04 -- nvidia-smi
 ```
 
 Se não houver GPU NVIDIA, remova `docker-compose.gpu.yml` dos comandos Compose e use os modelos em CPU. O desempenho será menor.
-
-## Arquitetura e limites atuais
-
-O fluxo implementado conecta Open WebUI → LiteLLM → Ollama, com PostgreSQL, Redis, n8n, o servidor MCP e o dashboard. Tika, Whisper/TTS, Qdrant, Neo4j e Browserless são serviços prontos para uso por integrações. O repositório ainda não contém uma pipeline própria de ingestão e recuperação que ligue Tika, chunking, embeddings e Qdrant, nem um fluxo GraphRAG completo; essas partes devem ser implementadas antes de divulgar o laboratório como uma plataforma RAG pronta.
-
-O Hermes Agent é uma opção de cliente de agentes para uma aula específica, executado no Ubuntu e apontado ao LiteLLM/MCP. Ele não é necessário para subir a infraestrutura e não precisa ser outro container permanente.
 
 Veja a análise e as etapas recomendadas em [docs/ANALISE_E_PLANO.md](docs/ANALISE_E_PLANO.md).
