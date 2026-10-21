@@ -1,6 +1,5 @@
-# Ative este complemento quando o driver NVIDIA do Windows e o NVIDIA Container
-# Toolkit dentro do Ubuntu WSL estiverem prontos. O driver Linux não deve ser
-# instalado dentro do WSL.
+# Ative este complemento quando o NVIDIA Container Toolkit estiver configurado.
+# No Windows/WSL, o driver fica no Windows. No Linux nativo, o driver fica no host.
 services:
   ollama:
     deploy:

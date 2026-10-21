@@ -1,8 +1,29 @@
 # Laboratório de IA
 
-Desenvolvido por **Georges Lucas Silva Queiroz de Albuquerque** · [GitHub](https://github.com/georgeslucas50)
+Desenvolvido por **Georges Lucas Silva Queiroz de Albuquerque** · [GitHub](https://github.com/georgeslucas50) · [LinkedIn](https://www.linkedin.com/in/georges-lucas-0928123b3/)
 
-Ambiente local de estudo para modelos, aplicações de chat, automações e serviços de apoio a RAG. O projeto usa Docker Compose dentro do Ubuntu no WSL 2. A GPU NVIDIA é opcional; com driver compatível, o Ollama usa a GPU, e sem ela funciona em CPU.
+Ambiente local de estudo para modelos, aplicações de chat, automações e serviços de apoio a RAG. O laboratório pode rodar no Ubuntu pelo WSL 2 no Windows ou diretamente em uma instalação nativa do Ubuntu. As duas opções usam os mesmos arquivos Docker Compose; cada host mantém suas próprias imagens, modelos e volumes. A GPU NVIDIA é opcional; com driver compatível, o Ollama usa a GPU, e sem ela funciona em CPU.
+
+## Instalação no Linux nativo
+
+O instalador automatizado atende Ubuntu LTS 22.04, 24.04 ou 26.04 em computadores x86_64/amd64 com systemd. Em outras distribuições, os arquivos Compose podem ser usados após a configuração manual do Docker Engine e, se houver GPU, do NVIDIA Container Toolkit.
+
+Requisitos recomendados: 16 GB de RAM (32 GB recomendado), 40 GB livres em disco ou mais para modelos adicionais, virtualização habilitada quando o Ubuntu estiver em uma máquina virtual e acesso à internet. A primeira execução baixa imagens e modelos grandes. Para GPU, instale e valide primeiro o driver NVIDIA apropriado para a versão do Ubuntu; o instalador não instala drivers de vídeo no Linux.
+
+Instale Git e clone o repositório — não use **Code → Download ZIP**, pois as atualizações do dashboard consultam o GitHub por meio do remoto Git:
+
+```bash
+sudo apt update
+sudo apt install -y git
+git clone https://github.com/georgeslucas50/lab_ia.git
+cd lab_ia
+chmod +x scripts/preparar_ambiente_linux.sh scripts/abrir_jupyter.sh
+./scripts/preparar_ambiente_linux.sh
+```
+
+O instalador instala o Docker Engine e o plugin Docker Compose oficiais quando eles não estão disponíveis, cria ou completa `.env` sem substituir valores locais já preenchidos, valida a configuração e sobe os perfis `full` e `management`. Se identificar uma GPU NVIDIA com driver funcional, instala o NVIDIA Container Toolkit, testa o acesso à GPU e habilita o complemento Compose; essa configuração reinicia o Docker Engine e pode reiniciar brevemente containers de outros projetos. Caso contrário, sobe o laboratório em CPU. Se encontrar pacotes Docker incompatíveis, o instalador para sem removê-los ou apagar dados existentes. No primeiro uso, o seu usuário é incluído no grupo `docker`; encerre e reabra a sessão do Ubuntu para executar comandos Docker sem `sudo`. Esse grupo concede privilégios equivalentes a root.
+
+Depois da instalação, acesse [http://localhost:9090/dashboard](http://localhost:9090/dashboard). Para abrir o JupyterLab com autenticação, execute `./scripts/abrir_jupyter.sh`.
 
 ## Instalação no Windows
 
@@ -30,7 +51,7 @@ Após a instalação, os modelos iniciais `llama3.2:3b` e `nomic-embed-text` sã
 
 ## Serviços e portas
 
-O Compose define 18 serviços. O perfil `full` inicia os 17 serviços de aprendizagem; Portainer fica separado no perfil de administração `management`. Oito serviços essenciais iniciam sem perfil. O instalador Windows ativa os dois perfis e sobe os 18 serviços; numa execução manual, use só `full` para deixar Portainer parado.
+O Compose define 18 serviços. O perfil `full` inicia os 17 serviços de aprendizagem; Portainer fica separado no perfil de administração `management`. Oito serviços essenciais iniciam sem perfil. Os instaladores Windows e Linux ativam os dois perfis e sobem os 18 serviços; numa execução manual, use só `full` para deixar Portainer parado.
 
 | Serviço | Porta local | Perfil | Uso |
 | --- | ---: | --- | --- |
@@ -53,7 +74,7 @@ O Compose define 18 serviços. O perfil `full` inicia os 17 serviços de aprendi
 | Portainer | 9001 | `management` | Inspeção de containers; não inicia no perfil de aprendizagem |
 | JupyterLab | 8888 | `full` | Notebooks persistentes e bibliotecas para IA, dados, MCP e acesso aos serviços locais |
 
-As portas publicadas ficam vinculadas a `127.0.0.1`, para acesso apenas nesta máquina. Aplicações em containers conversam pela rede interna `ai_network`; não use `localhost` entre containers. Volumes nomeados guardam modelos e dados no disco Linux do WSL.
+As portas publicadas ficam vinculadas a `127.0.0.1`, para acesso apenas nesta máquina. Aplicações em containers conversam pela rede interna `ai_network`; não use `localhost` entre containers. Volumes nomeados guardam modelos e dados no armazenamento do Docker do host: no Windows, dentro do Ubuntu WSL; no Linux nativo, no próprio Ubuntu. Esses dados não são transferidos automaticamente de uma instalação para a outra.
 
 No dashboard, **Documentação** abre o índice de guias por container e **Configurações** permite zerar um serviço ou o laboratório inteiro. O reset individual apaga os dados persistentes ligados ao serviço; o reset do PostgreSQL afeta também os bancos de n8n, Flowise, Open WebUI, LiteLLM e Phoenix. O reset do Redis limpa o cache compartilhado; os resets do LiteLLM e do Python MCP também limpam esse cache para restaurar seus estados iniciais, afetando temporariamente o cache e a memória compartilhada com outros serviços. O reset do Jupyter apaga notebooks e arquivos salvos. O reset completo limpa todos os volumes do projeto, recria os bancos iniciais e baixa novamente `llama3.2:3b` e `nomic-embed-text`; exige digitar a confirmação mostrada no painel. Arquivos do projeto, `.env`, WSL e imagens Docker são preservados.
 
@@ -61,18 +82,20 @@ Em **Configurações**, **Verificar atualizações** consulta o branch padrão d
 
 Em instalações antigas feitas pelo ZIP, execute o instalador atualizado para que ele tente preparar os metadados Git sem substituir arquivos locais. Para novas instalações, use sempre `git clone` como mostrado acima. Se os arquivos locais diferirem do repositório remoto, o dashboard bloqueará a atualização até que as diferenças sejam resolvidas.
 
-O JupyterLab usa o volume persistente `jupyter_storage`, inclui bibliotecas Python para dados e APIs de IA e recebe endpoints internos por variáveis de ambiente (`OLLAMA_HOST`, `OPENAI_BASE_URL`, `QDRANT_URL`, `NEO4J_URI`, `REDIS_URL`, `PYTHON_MCP_URL` e outras). Para entrar com o token gerado no `.env`, execute `scripts\abrir_jupyter.ps1`. As instruções e um exemplo inicial ficam em `learning\notebooks\INICIO.md`.
+O JupyterLab usa o volume persistente `jupyter_storage`, inclui bibliotecas Python para dados e APIs de IA e recebe endpoints internos por variáveis de ambiente (`OLLAMA_HOST`, `OPENAI_BASE_URL`, `QDRANT_URL`, `NEO4J_URI`, `REDIS_URL`, `PYTHON_MCP_URL` e outras). No Windows, execute `scripts\abrir_jupyter.ps1`; no Ubuntu nativo, execute `./scripts/abrir_jupyter.sh`. As instruções e um exemplo inicial ficam em `learning\notebooks\INICIO.md`.
 
 ## Modelos locais
 
 O laboratório baixa `llama3.2:3b` para um primeiro uso leve e `nomic-embed-text` para embeddings. Outros modelos configurados no gateway, como `llama3.1:8b`, são baixados pelo Ollama quando solicitados. Em uma GPU com 8 GB de VRAM, comece pelo modelo 3B; o 8B pode exigir quantização e reduzir espaço disponível para contexto.
 
-Para confirmar a GPU dentro do Ubuntu:
+Para confirmar a GPU dentro do Ubuntu WSL:
 
 ```powershell
 wsl -d Ubuntu-24.04 -- nvidia-smi
 ```
 
-Se não houver GPU NVIDIA, remova `docker-compose.gpu.yml` dos comandos Compose e use os modelos em CPU. O desempenho será menor.
+No Ubuntu nativo, confira o driver com `nvidia-smi`. O instalador habilita a GPU somente depois de validar o driver do host, o NVIDIA Container Toolkit e o acesso a partir de um container. Consulte a [documentação oficial de instalação do Docker para Ubuntu](https://docs.docker.com/engine/install/ubuntu/) e a [documentação do NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) para requisitos e solução de problemas.
+
+Se não houver GPU NVIDIA, use os modelos em CPU; o desempenho será menor.
 
 Veja a análise e as etapas recomendadas em [docs/ANALISE_E_PLANO.md](docs/ANALISE_E_PLANO.md).
