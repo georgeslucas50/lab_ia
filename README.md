@@ -29,7 +29,7 @@ Depois da instalação, acesse [http://localhost:9090/dashboard](http://localhos
 
 ## Instalação no Windows
 
-A instalação no Windows é manual: o aluno instala WSL 2 e Ubuntu, configura o Docker Engine dentro do Ubuntu, clona o repositório e inicia os containers com Docker Compose. **Não execute um script PowerShell de preparação do ambiente.** Siga o [guia detalhado de instalação Windows/WSL](docs/INSTALACAO_WINDOWS_WSL.md), que também mostra como criar o `.env`, baixar as imagens e modelos iniciais, verificar os serviços e habilitar GPU NVIDIA opcional.
+A instalação no Windows é manual: o aluno instala WSL 2 e Ubuntu, configura o Docker Engine dentro do Ubuntu, clona o repositório e inicia os containers com Docker Compose. **Não execute um script PowerShell de preparação do ambiente.** Siga o [guia detalhado de instalação Windows/WSL](docs/INSTALACAO_WINDOWS_WSL.md), que também mostra como criar o `.env`, baixar as imagens e modelos iniciais, configurar as contas no primeiro acesso, validar as integrações e habilitar GPU NVIDIA opcional.
 
 O guia usa o Docker Engine dentro da distribuição Ubuntu WSL, não o Docker Desktop. Clone o projeto dentro do diretório Linux (`/home/...`) e use `git clone`, não **Code → Download ZIP**: o atualizador do dashboard precisa do remoto e do histórico Git. As credenciais ficam em `.env`, arquivo local ignorado pelo Git; não o compartilhe.
 

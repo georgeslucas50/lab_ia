@@ -151,12 +151,14 @@ Não publique nem compartilhe `.env`. O arquivo contém senhas e tokens. `GITHUB
 
 ## 6. Baixe e inicie os serviços
 
-Ainda em `~/lab_ia`, valide a configuração e inicie todos os serviços de aprendizagem e administração. O primeiro comando baixa as imagens remotas e constrói as imagens do projeto:
+Ainda em `~/lab_ia`, valide a configuração e inicie todos os serviços de aprendizagem e administração. Os perfis `full` e `management` iniciam os 19 containers definidos no projeto; o Portainer fica disponível para administração local, mas não faz parte das atividades do curso. O primeiro comando baixa as imagens remotas e constrói as imagens do projeto:
 
 ```bash
 sudo docker compose --profile full --profile management config -q
 sudo docker compose --profile full --profile management up -d --build
 ```
+
+Se pretende acessar o Portainer, abra [http://localhost:9001](http://localhost:9001) assim que os containers iniciarem e crie a conta administradora em até cinco minutos. Se não for configurá-lo agora, ignore esta etapa; caso o prazo expire, inicie o serviço pelo dashboard ou execute `sudo docker compose --profile full --profile management restart portainer` e faça o cadastro.
 
 A primeira execução pode baixar vários gigabytes e levar algum tempo. Aguarde o Ollama responder e baixe os dois modelos iniciais:
 
@@ -178,7 +180,7 @@ sudo docker compose exec -T ollama ollama pull llama3.2:3b
 sudo docker compose exec -T ollama ollama pull nomic-embed-text
 ```
 
-Confirme os 19 serviços e os healthchecks que estão configurados:
+Confirme os 19 containers. O script aguarda todos ficarem em execução e valida os healthchecks existentes; nem todos os serviços definem um healthcheck, então faça também os testes funcionais da próxima etapa.
 
 ```bash
 sudo bash scripts/aguardar_servicos.sh "$PWD"
@@ -191,6 +193,46 @@ Abra no navegador do Windows:
 - Página inicial: [http://localhost:9090](http://localhost:9090)
 - Open WebUI: [http://localhost:3000](http://localhost:3000)
 - JupyterLab: execute `bash scripts/abrir_jupyter.sh` no Ubuntu; se o navegador não abrir automaticamente, copie o endereço exibido para o navegador do Windows.
+
+## 7. Faça o primeiro acesso e valide o laboratório
+
+As credenciais técnicas geradas na etapa 5 não criam automaticamente contas de usuário nas interfaces. Na primeira abertura, configure as contas abaixo e guarde as senhas em local seguro. O `.env` é local e contém chaves de serviços; não o envie a colegas nem o publique.
+
+| Serviço | Endereço | Primeiro acesso |
+| --- | --- | --- |
+| Dashboard | [http://localhost:9090/dashboard](http://localhost:9090/dashboard) | Não exige conta. Confira se os serviços aparecem como online. |
+| Open WebUI | [http://localhost:3000](http://localhost:3000) | Crie a primeira conta; ela recebe o papel de administrador. O cadastro é fechado automaticamente depois. |
+| LiteLLM API | `http://localhost:4000/v1` | Não tem conta web de aluno. Clientes externos usam `LITELLM_MASTER_KEY` do `.env`; o Open WebUI já recebe essa chave pelo Compose. |
+| n8n | [http://localhost:5678](http://localhost:5678) | Complete a tela inicial para criar a conta proprietária. Não há SMTP configurado, então a recuperação de senha por e-mail não estará disponível; guarde a senha. |
+| Flowise | [http://localhost:3001](http://localhost:3001) | Siga a tela de configuração inicial e crie a conta administradora. O Compose não define `FLOWISE_USERNAME` nem `FLOWISE_PASSWORD`, portanto não há usuário ou senha padrão para usar. |
+| Neo4j | [http://localhost:7474](http://localhost:7474) | Entre com o usuário `neo4j` e a senha definida em `NEO4J_AUTH` no `.env`. Essa variável define a senha inicial do volume; alterar seu valor depois não troca automaticamente a senha já gravada no banco. |
+| JupyterLab | via `bash scripts/abrir_jupyter.sh` | O script lê o token local do `.env`, verifica o serviço e mostra o endereço autenticado. Não compartilhe esse endereço, pois ele contém o token. |
+| Phoenix | [http://localhost:6006](http://localhost:6006) | Não exige conta nesta instalação local. Os traces enviados pelo LiteLLM aparecem após uma chamada de modelo instrumentada. |
+| Qdrant | [http://localhost:6333/dashboard](http://localhost:6333/dashboard) | Não exige conta nesta instalação local. É uma interface de inspeção do banco vetorial. |
+| Portainer | [http://localhost:9001](http://localhost:9001) | Não é usado nas aulas. A conta administradora deve ser criada até cinco minutos após o container iniciar; se o prazo expirar, reinicie o serviço conforme a etapa 6. |
+
+O Open WebUI já está configurado para chamar o LiteLLM, que encaminha a solicitação ao Ollama. Essa conexão pode ser validada sem configurar credenciais adicionais na interface:
+
+1. Entre no Open WebUI e selecione `llama3.2:3b` na lista de modelos.
+2. Envie: `Responda apenas: laboratório funcionando.`
+3. Confirme que chegou uma resposta. Isso testa o caminho Open WebUI → LiteLLM → Ollama.
+4. Abra o Phoenix e verifique se a chamada gerou um trace. A primeira carga pode demorar enquanto os serviços inicializam.
+5. Abra o JupyterLab pelo script auxiliar e execute uma célula com:
+
+   ```python
+   import requests
+   requests.get("http://ollama:11434/api/tags", timeout=10).json()
+   ```
+
+   Uma resposta JSON com os modelos confirma a comunicação do notebook com o Ollama pela rede Docker.
+
+No n8n, um teste independente de APIs externas é criar um workflow com **Manual Trigger** e **Edit Fields (Set)**, executar e confirmar que o nó mostra a saída. Isso valida a interface e a execução básica; não configura uma integração com IA.
+
+As telas do n8n e Flowise começam sem fluxos didáticos importados. Suas contas e interfaces estão prontas, mas o aluno criará os workflows e agentes durante as aulas. O Flowise também não recebe uma conexão de modelo pré-configurada; configure o provedor durante a atividade usando os endpoints internos do Compose. Apenas o caminho Open WebUI → LiteLLM → Ollama já vem conectado.
+
+PostgreSQL, Redis, Tika, Whisper, TTS, Browserless e Python MCP oferecem APIs ou serviços internos para os outros containers; não é necessário criar uma conta web para cada um durante a instalação. Browserless usa `BROWSERLESS_TOKEN` do `.env` para autenticar chamadas técnicas. A presença de Tika, Qdrant e Neo4j também não significa que já exista um pipeline RAG ou GraphRAG completo integrado.
+
+O Portainer tem acesso administrativo ao daemon Docker. Use-o apenas localmente e não publique sua porta na rede; as portas desta stack já estão vinculadas a `127.0.0.1`.
 
 ## GPU NVIDIA (opcional)
 
@@ -230,7 +272,7 @@ sudo docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile fu
 
 Se o teste falhar, use a stack sem o overlay; o Ollama funcionará em CPU.
 
-## Operação básica
+## 8. Operação básica
 
 Para iniciar novamente os serviços depois de abrir o Ubuntu:
 
@@ -247,10 +289,31 @@ sudo docker compose --profile full --profile management stop
 
 Os dados ficam em volumes Docker dentro do Ubuntu WSL. **Não use `docker compose down -v`**: essa opção apaga volumes, modelos, bancos, notebooks e dados dos serviços. Para consultar falhas, use `sudo docker compose --profile full --profile management logs --tail 100 NOME_DO_SERVICO`.
 
+Para aplicar as alterações publicadas no GitHub, use **Configurações → Verificar atualizações** no dashboard e, quando estiver pronto, **Atualizar sistema**. O atualizador consulta o branch padrão do GitHub e preserva `.env` e volumes. A atualização pode baixar imagens e reiniciar serviços; não interrompa o WSL ou o Docker enquanto estiver em andamento.
+
+## 9. Solução de problemas
+
+| Sintoma | Verificação e ação |
+| --- | --- |
+| Docker não responde | No Ubuntu, confira `sudo systemctl status docker --no-pager` e `sudo docker info`. Se o serviço estiver parado, inicie-o com `sudo systemctl start docker`. |
+| `docker compose config -q` informa variável vazia | Confira se `.env` existe em `~/lab_ia`, se os marcadores foram substituídos e se o arquivo veio de `.env.example`. Não cole o conteúdo do `.env` em chamados ou mensagens. |
+| Um serviço não iniciou ou não responde | Use `sudo docker compose --profile full --profile management ps` e `sudo docker compose --profile full --profile management logs --tail 100 NOME_DO_SERVICO`. Resolva a causa antes de repetir `up -d`. |
+| Erro de porta já em uso | Identifique o processo no Ubuntu com `sudo ss -lntp | grep ':PORTA'`. Não encerre processos de outros projetos sem descobrir a que serviço pertencem. |
+| Open WebUI não mostra modelos ou o chat falha | Confirme que os modelos foram baixados com `sudo docker compose exec ollama ollama list`; consulte os logs de `litellm`, `ollama` e `open-webui`. O endereço entre containers é o DNS Compose (`ollama`, `litellm`), não `localhost`. |
+| Jupyter pede token ou o link não abre | Execute `bash scripts/abrir_jupyter.sh` dentro de `~/lab_ia`. Confira se `JUPYTER_TOKEN` existe no `.env` e se o serviço `jupyter` está ativo no dashboard. |
+| GPU não aparece | Valide primeiro `nvidia-smi` no Ubuntu e depois o teste de GPU em container da seção seguinte. Sem validação bem-sucedida, suba o Compose sem `docker-compose.gpu.yml`; o Ollama usa CPU. |
+| Inicialização lenta ou falta de memória | A primeira execução baixa imagens e modelos; espere os downloads terminarem. Comece com `llama3.2:3b`, feche aplicações pesadas e mantenha espaço livre para os modelos. |
+
+Após corrigir `.env` ou arquivos Compose, valide novamente com `sudo docker compose --profile full --profile management config -q`. Se alterou credenciais de banco após os volumes terem sido inicializados, restaurar os valores antigos do `.env` pode ser necessário; as variáveis de inicialização não trocam automaticamente senhas já gravadas nos bancos.
+
 ## Referências oficiais
 
 - [Instalação do WSL](https://learn.microsoft.com/windows/wsl/install)
 - [Systemd no WSL](https://learn.microsoft.com/windows/wsl/systemd)
 - [Instalação do Docker Engine no Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+- [Primeiro usuário e autenticação do Open WebUI](https://docs.openwebui.com/features/authentication-access/rbac/roles/)
+- [Gerenciamento de usuários no n8n](https://docs.n8n.io/deploy/host-n8n/configure-n8n/user-management/)
+- [Autenticação do Flowise](https://docs.flowiseai.com/configuration/authorization/app-level)
+- [Configuração inicial do Portainer](https://docs.portainer.io/start/install-ce/server/setup)
 - [CUDA e GPU no WSL](https://docs.nvidia.com/cuda/wsl-user-guide/)
 - [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
