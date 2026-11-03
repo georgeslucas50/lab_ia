@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ollama | Laboratório IA</title>
+    <script defer src="/static/js/code-copy.js?v=20261020-ux1"></script>
     <style>
         body { margin: 0; padding: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: radial-gradient(ellipse at 80% -15%, #29214b 0, transparent 35%), #0b1020; color: #e8edf7; display: flex; height: 100vh; overflow: hidden; }
         
@@ -74,165 +75,568 @@
             .content-wrapper { padding: clamp(20px, 5vw, 32px); border-radius: 16px; }
         }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+        :root { color-scheme: dark; scroll-behavior: smooth; }
+        body {
+            background:
+                radial-gradient(ellipse at 78% -16%, #463b7a38 0, transparent 39%),
+                radial-gradient(ellipse at 7% 52%, #163b4725 0, transparent 35%),
+                linear-gradient(145deg, #0a0e1a, #0b1020 50%, #0a111b);
+            scrollbar-color: #46516d #0b1020;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #11182aee, #0d1423f5 72%);
+            border-right-color: #303a54;
+            box-shadow: 16px 0 50px #0205102b;
+        }
+        .manual-brand-mark {
+            border-color: #c7bdff70;
+            border-radius: 13px;
+            background: linear-gradient(145deg, #aa9aff, #6653d3 76%);
+            box-shadow: 0 9px 28px #806ce455, inset 0 1px #ffffff70;
+        }
+        .manual-brand-mark svg { width: 19px; height: 19px; color: #fff; }
+        .sidebar h3 { color: #b0a5ff; }
+        .sidebar a { min-height: 40px; border-radius: 11px; font-size: .9rem; }
+        .sidebar a:hover, .sidebar a.active { border-left-color: #b3a6ff; background: linear-gradient(100deg, #7967e82e, #7967e80b); color: #e6e0ff; }
+        .back-btn { min-height: 44px; border-radius: 12px; box-shadow: 0 9px 22px #5845bd35; }
+        .main-content { scroll-padding-top: 22px; }
+        .content-wrapper {
+            max-width: 1080px;
+            padding: clamp(25px, 5vw, 54px);
+            border-color: #303b56;
+            border-radius: 23px;
+            background: linear-gradient(150deg, #151d30f5, #101625f2 78%);
+            box-shadow: inset 0 1px #ffffff09, 0 26px 75px #03071260;
+        }
+        .manual-hero {
+            position: relative;
+            overflow: hidden;
+            padding: clamp(22px, 4vw, 38px);
+            margin: 0 0 38px;
+            border: 1px solid #514b7a70;
+            border-radius: 20px;
+            background:
+                radial-gradient(ellipse at 100% 0, #8978f02d, transparent 44%),
+                linear-gradient(125deg, #1b2038, #111827 80%);
+            box-shadow: inset 0 1px #ffffff0b;
+        }
+        .manual-hero::after {
+            position: absolute;
+            top: -106px;
+            right: -35px;
+            width: 220px;
+            height: 220px;
+            border: 1px solid #b6aaff18;
+            border-radius: 50%;
+            box-shadow: 0 0 0 22px #b6aaff08, 0 0 0 48px #b6aaff05;
+            content: '';
+            pointer-events: none;
+        }
+        .manual-hero-kicker { position: relative; z-index: 1; margin: 0 0 13px; color: #b0a5ff; font-size: .68rem; font-weight: 700; letter-spacing: .13em; }
+        .manual-hero h1 { position: relative; z-index: 1; max-width: 750px; margin: 0; padding: 0; color: #f0efff; border: 0; font-size: clamp(2rem, 4.5vw, 3.1rem); letter-spacing: -.055em; }
+        .manual-hero-copy { position: relative; z-index: 1; max-width: 720px; margin: 14px 0 20px; color: #aeb8ca; font-size: 1rem; line-height: 1.75; }
+        .manual-hero-tags { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
+        .manual-hero-tags li { padding: 6px 9px; margin: 0; color: #d2ccff; border: 1px solid #8b7af03b; border-radius: 99px; background: #7967e818; font-size: .68rem; }
+        .content-wrapper h2 { scroll-margin-top: 24px; margin-top: 54px; padding-bottom: 12px; border-bottom-color: #303a54; }
+        .content-wrapper h3 { margin-top: 28px; color: #d0c9ff; }
+        .content-wrapper p, .content-wrapper li { color: #aeb8ca; font-size: 1rem; line-height: 1.8; }
+        .content-wrapper strong { color: #f0efff; }
+        .content-wrapper li::marker { color: #a99aff; }
+        .content-wrapper code:not(.code-block) { padding: .15em .42em; color: #d2cbff; border: 1px solid #5a51853d; border-radius: 6px; background: #7967e814; font-size: .88em; }
+        .code-title { display: inline-flex; align-items: center; padding: 6px 10px; margin: 16px 0 6px; color: #c9c1ff; border-color: #3a365e; border-radius: 8px; background: #1b1b30; }
+        .code-block {
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: pre;
+            word-break: normal;
+            color: #b9e6d7;
+            border-color: #29364a;
+            border-radius: 12px;
+            background: #0b111c;
+            box-shadow: inset 0 1px #ffffff08;
+            font-size: .86rem;
+            line-height: 1.7;
+            scrollbar-color: #46516d #0b111c;
+        }
+        .code-surface { position: relative; margin: 0 0 18px; }
+        .code-surface > .code-block { margin: 0; padding-top: 47px; }
+        .code-copy { position: absolute; z-index: 2; top: 8px; right: 8px; display: inline-flex; min-height: 29px; align-items: center; justify-content: center; padding: 0 10px; color: #d5ceff; border: 1px solid #59518a; border-radius: 8px; background: #211e37; font-size: 10px; font-weight: 650; cursor: pointer; transition: color .16s, border-color .16s, background .16s, transform .16s; }
+        .code-copy:hover { transform: translateY(-1px); border-color: #a99aff; background: #30294d; }
+        .code-copy[data-state="success"] { color: #a8f0d6; border-color: #36846b; background: #142c25; }
+        .code-copy[data-state="error"] { color: #ffbac4; border-color: #94485b; background: #351f2b; }
+        .code-copy-status { position: absolute; overflow: hidden; width: 1px; height: 1px; padding: 0; margin: -1px; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        .highlight { color: #d2cbff; border-radius: 5px; background: #7967e81c; }
+        .warning { border: 1px solid #9a64204a; border-left: 3px solid #f3bb68; border-radius: 12px; background: #9a642018; }
+        .warning p { color: #f2c381; }
+        .manual-footer { border-top-color: #303a54; }
+        .manual-footer a { color: #c2baff; font-weight: 650; text-underline-offset: 3px; }
+        .manual-footer a:hover { color: #f0edff; text-decoration: underline; }
+        .manual-table-wrap { width: 100%; overflow-x: auto; margin: 18px 0 26px; border: 1px solid #303a54; border-radius: 12px; }
+        .manual-table { width: 100%; border-collapse: collapse; min-width: 620px; color: #aeb8ca; font-size: .9rem; line-height: 1.65; }
+        .manual-table th, .manual-table td { padding: 12px 14px; border-bottom: 1px solid #303a54; text-align: left; vertical-align: top; }
+        .manual-table th { color: #ded9ff; background: #1b1b30; font-weight: 700; }
+        .manual-table tr:last-child td { border-bottom: 0; }
+        .manual-note { padding: 16px 18px; margin: 18px 0; border: 1px solid #62579b66; border-radius: 12px; background: #7967e812; }
+        .manual-note p { margin: 0; }
+        .manual-note.warning { border-color: #9a64204a; }
+        .reference-list a { color: #c2baff; text-underline-offset: 3px; }
+        .reference-list a:hover { color: #fff; }
+        .skip-link { position: fixed; z-index: 100; top: 10px; left: 10px; padding: 10px 14px; transform: translateY(-160%); color: #fff; border: 1px solid #bdb2ff; border-radius: 10px; background: #282044; box-shadow: 0 10px 25px #0008; text-decoration: none; }
+        .skip-link:focus { transform: translateY(0); }
+        :focus-visible { outline: 2px solid #c2baff; outline-offset: 3px; }
+        @media (max-width: 760px) {
+            .sidebar { padding: 16px; border-bottom-color: #303a54; box-shadow: 0 12px 30px #03071230; }
+            .sidebar h3 { margin-bottom: 12px; }
+            .sidebar ul { gap: 7px; }
+            .sidebar a { min-height: 36px; padding: 8px 10px; border-color: #303a54; font-size: .76rem; }
+            .back-btn { width: fit-content; min-width: 190px; }
+            .main-content { padding: 14px; }
+            .content-wrapper { padding: clamp(17px, 5vw, 30px); border-radius: 18px; }
+            .manual-hero { padding: 22px 19px; margin-bottom: 27px; border-radius: 17px; }
+            .manual-hero-copy { font-size: .92rem; }
+            .content-wrapper h2 { margin-top: 40px; }
+            .code-block { font-size: .76rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
     </style>
 </head>
 <body>
-    <!-- Menu Lateral -->
-    <div class="sidebar">
-        <a href="/" class="manual-brand"><span class="manual-brand-mark" aria-hidden="true">✳</span><strong>Laboratório IA</strong></a>
-        <h3>🧠 Conteúdo do guia</h3>
+    <a class="skip-link" href="#manual-main">Pular para o conteúdo</a>
+    <aside class="sidebar" aria-label="Navegação do guia">
+        <a href="/" class="manual-brand"><span class="manual-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2.5 14.7 9.3 21.5 12l-6.8 2.7L12 21.5l-2.7 6.8L2.5 12l6.8-2.7L12 2.5Z" fill="currentColor"/><circle cx="12" cy="12" r="2.1" fill="#7662df"/></svg></span><strong>Laboratório IA</strong></a>
+        <h3>Ollama · Guia completo</h3>
+        <nav aria-label="Seções do manual"><ul>
+            <li><a href="#introducao">Visão geral</a></li><li><a href="#laboratorio">No laboratório</a></li>
+            <li><a href="#hardware">Modelos e hardware</a></li><li><a href="#modelos">Gerenciar modelos</a></li>
+            <li><a href="#cli">CLI e execução</a></li><li><a href="#modelfile">Modelfile</a></li>
+            <li><a href="#instrucoes-modelfile">Instruções</a></li><li><a href="#parametros">Parâmetros</a></li>
+            <li><a href="#customizacao">Criar variante</a></li><li><a href="#importacao">Importar modelos</a></li>
+            <li><a href="#api">API REST</a></li><li><a href="#capacidades">Capacidades</a></li>
+            <li><a href="#python">Python e integrações</a></li><li><a href="#desempenho">Desempenho</a></li>
+            <li><a href="#referencias">Referências</a></li>
+        </ul></nav>
+        <a href="/" class="back-btn">Voltar ao laboratório</a>
+    </aside>
+    <main class="main-content" id="manual-main" tabindex="-1"><div class="content-wrapper">
+        <header class="manual-hero">
+            <p class="manual-hero-kicker">INFERÊNCIA LOCAL · MODELOS · AUTOMAÇÃO</p>
+            <h1>Ollama: guia completo</h1>
+            <p class="manual-hero-copy">Instale, gerencie e integre modelos locais. Aprenda CLI, API, multimodalidade, embeddings, ferramentas e customização com Modelfile.</p>
+            <ul class="manual-hero-tags" aria-label="Tópicos do guia"><li>Docker e CLI</li><li>API REST</li><li>Modelos multimodais</li><li>Modelfile</li></ul>
+        </header>
+
+        <h2 id="introducao">1. O que é o Ollama</h2>
+        <p>O Ollama baixa e executa modelos de IA por meio de um servidor local. O servidor mantém modelos no armazenamento configurado e oferece CLI, API HTTP e compatibilidade parcial com APIs conhecidas. Open WebUI, n8n, Jupyter, LiteLLM e outros clientes podem usar o mesmo servidor.</p>
+        <p>Ollama é o runtime e gerenciador do modelo. Não é, sozinho, uma interface completa de chat, banco vetorial, orquestrador de fluxos ou processo de treinamento de pesos. O laboratório combina serviços para esses usos.</p>
+        <div class="manual-note"><p><strong>Privacidade:</strong> chamadas ao servidor local são processadas nesse ambiente. Isso não se aplica automaticamente a integrações externas, modelos em nuvem, plugins ou ferramentas que acessem a internet. Confira para onde cada aplicação envia os dados.</p></div>
+
+        <h2 id="laboratorio">2. Ollama neste laboratório</h2>
+        <p>O serviço Compose chama-se <code>ollama</code> e mantém modelos no volume persistente <code>ollama_storage</code>. A API local não exige autenticação e é publicada somente em <code>127.0.0.1:11434</code> no host, não diretamente para toda a rede local.</p>
+        <div class="manual-table-wrap"><table class="manual-table"><thead><tr><th>Onde está o cliente</th><th>Endereço</th><th>Exemplos</th></tr></thead><tbody>
+            <tr><td>Windows ou Ubuntu no host</td><td><code>http://localhost:11434</code></td><td>PowerShell, navegador ou aplicativo no host.</td></tr>
+            <tr><td>Outro container Compose</td><td><code>http://ollama:11434</code></td><td>LiteLLM, n8n, Open WebUI e serviços na rede Docker.</td></tr>
+            <tr><td>JupyterLab do laboratório</td><td><code>http://ollama:11434</code></td><td>Código executado no container Jupyter.</td></tr>
+        </tbody></table></div>
+        <p>Para usar a CLI sem instalação separada, abra o terminal na pasta do projeto (Ubuntu no WSL no Windows) e execute <code>docker compose exec ollama ...</code>. Os exemplos assumem o diretório com <code>docker-compose.yml</code>.</p>
+        <div class="code-title">Verificar o serviço</div><div class="code-block">docker compose ps ollama
+docker compose exec ollama ollama --version
+docker compose exec ollama ollama list</div>
+        <div class="manual-note warning"><p><strong>Modelos iniciais:</strong> o laboratório baixa <code>llama3.2:3b</code> para geração e <code>nomic-embed-text</code> para embeddings. Outros precisam ser baixados. Confira tags e licenças no catálogo oficial.</p></div>
+
+        <h2 id="hardware">3. Modelos, quantização e hardware</h2>
+        <p>3B, 8B e 70B indicam aproximadamente bilhões de parâmetros; não representam diretamente a memória necessária. Execução também depende da quantização, contexto, imagens, lote, arquitetura e backend.</p>
         <ul>
-            <li><a href="#introducao">1. Introdução ao Motor</a></li>
-            <li><a href="#arquitetura">2. Arquitetura e VRAM (Hardware)</a></li>
-            <li><a href="#gerenciamento">3. Gestão Básica de Modelos</a></li>
-            <li><a href="#cli-avancado">4. CLI Avançado e Interação</a></li>
-            <li><a href="#modelfile">5. Compilação (Modelfile)</a></li>
-            <li><a href="#api-rest">6. Consumo via API REST HTTP</a></li>
+            <li><strong>Tamanho:</strong> modelos maiores podem ter mais capacidade em algumas tarefas, com maior custo de memória e computação.</li>
+            <li><strong>Quantização:</strong> reduz a precisão dos pesos para economizar espaço e memória, com possível impacto na qualidade. Tags como <code>Q4_K_M</code> indicam variantes quantizadas.</li>
+            <li><strong>GPU e CPU:</strong> pesos que cabem na VRAM podem usar GPU compatível. Também é possível usar CPU ou combinar backends, com velocidades distintas.</li>
+            <li><strong>Contexto:</strong> tokens considerados na solicitação. Aumentá-lo tende a consumir mais memória; o limite anunciado não garante execução eficiente nesse hardware.</li>
         </ul>
-        <a href="/" class="back-btn">⬅️ Voltar à Tela Inicial</a>
-    </div>
+        <p>Comece pelo 3B incluído e compare tamanhos maiores na máquina disponível. Evite tratar estimativas de VRAM como garantia. Use <code>ollama ps</code> para conferir contexto e divisão da carga entre CPU e GPU.</p>
 
-    <!-- Conteúdo do Manual -->
-    <div class="main-content">
-        <div class="content-wrapper">
-            <h1>Manual Avançado: Ollama</h1>
-            <p>O <strong>Ollama</strong> é o serviço responsável por carregar e executar modelos de linguagem (LLMs) localmente neste laboratório pessoal de inteligência artificial.</p>
-            
-            <!-- Seção 1 -->
-            <h2 id="introducao">1. Introdução ao Motor</h2>
-            <p>Ao contrário das APIs em nuvem (como OpenAI ou Anthropic), o Ollama pode executar inferências na própria máquina. Assim, os prompts enviados diretamente a esse serviço permanecem no ambiente local; integrações que usam APIs externas podem transmitir dados pela internet.</p>
-            <ul>
-                <li>Ele opera como um daemon (serviço em segundo plano), recebendo requisições e retornando texto gerado.</li>
-                <li>Não possui interface gráfica nativa. Ele pode ser gerenciado pela linha de comando (CLI) ou por integrações como o Open WebUI e o n8n.</li>
-                <li>É capaz de operar dezenas de modelos abertos, de famílias como Llama (Meta), Qwen (Alibaba), Mistral e Gemma (Google).</li>
-            </ul>
+        <h2 id="modelos">4. Baixar, listar, inspecionar e remover modelos</h2>
+        <h3>Listar e baixar</h3>
+        <div class="code-title">Terminal do projeto · WSL ou Ubuntu</div>
+        <div class="code-block"># Modelos armazenados localmente
+docker compose exec ollama ollama list
 
-            <!-- Seção 2 -->
-            <h2 id="arquitetura">2. Arquitetura e VRAM (Hardware)</h2>
-            <div class="warning">
-                <p><strong>Atenção ao Hardware:</strong> O limite da inteligência artificial local não é ditado apenas pelo Processador (CPU), mas sim pela <strong>VRAM</strong> (Memória de Vídeo da Placa Gráfica).</p>
-            </div>
-            <p>O Ollama faz a carga dos modelos (que são gigantescas matrizes de pesos neurais) diretamente na placa NVIDIA RTX 4060 do laboratório. Se o modelo for maior que a VRAM disponível, o Ollama faz um <em>offload</em> (transbordo) para a memória RAM comum e para a CPU, o que reduz drasticamente a velocidade de resposta.</p>
-            
-            <h3>Entendendo o Tamanho (Parâmetros) e Quantização</h3>
-            <p>Quando pesquisamos modelos, sempre vemos números como <strong>3B</strong>, <strong>7B</strong> ou <strong>70B</strong>. Isso refere-se à quantidade de "Bilhões de Parâmetros".</p>
-            <ul>
-                <li><strong>7B a 8B:</strong> Ocupam cerca de 4 a 5 GB de VRAM. Excelentes para a nossa placa RTX 4060. Respondem instantaneamente.</li>
-                <li><strong>70B:</strong> Ocupam cerca de 40 GB de VRAM. São proibitivos para placas menores e forçam o processamento lento via CPU.</li>
-                <li><strong>Quantização (ex: Q4_K_M):</strong> O Ollama automaticamente comprime os pesos matemáticos dos modelos para que caibam na memória sem perda notável de raciocínio lógico.</li>
-            </ul>
+# Baixar modelos de texto e embeddings
+docker compose exec ollama ollama pull llama3.2:3b
+docker compose exec ollama ollama pull nomic-embed-text
 
-            <!-- Seção 3 -->
-            <h2 id="gerenciamento">3. Gestão Básica de Modelos</h2>
-            <p>Gerenciar os arquivos locais é fundamental. Você executa os comandos injetando ações no container Docker do Ollama.</p>
+# Exemplo de outro modelo (confirme tag e tamanho no catálogo)
+docker compose exec ollama ollama pull qwen3:4b</div>
+        <p>Downloads podem ocupar gigabytes e precisam de internet. Os arquivos ficam no volume persistente.</p>
+        <h3>Executar, inspecionar e remover</h3>
+        <div class="code-title">Comandos de gerenciamento</div>
+        <div class="code-block"># Conversa no terminal; encerre com /bye
+docker compose exec -it ollama ollama run llama3.2:3b
 
-            <h3>Listar Modelos na Memória</h3>
-            <p>Mostra tudo o que já está baixado e o tamanho real no disco.</p>
-            <div class="code-title">Terminal (WSL)</div>
-            <div class="code-block">docker exec -it ollama ollama list</div>
+# Metadados e receita gravada
+docker compose exec ollama ollama show llama3.2:3b
+docker compose exec ollama ollama show --modelfile llama3.2:3b
 
-            <h3>Baixar Novos Modelos (Pull)</h3>
-            <p>Baixa um modelo oficial do registro de modelos do Ollama. Arquivos grandes, requer boa internet temporariamente.</p>
-            <div class="code-title">Terminal (WSL)</div>
-            <div class="code-block">docker exec -it ollama ollama pull llama3.2
-docker exec -it ollama ollama pull qwen2.5:7b-instruct
-docker exec -it ollama ollama pull nomic-embed-text</div>
+# Modelos carregados na memória
+docker compose exec ollama ollama ps
 
-            <h3>Apagar Modelos (RM)</h3>
-            <p>Exclui definitivamente um modelo. Essencial para manter o SSD do laboratório limpo.</p>
-            <div class="code-title">Terminal (WSL)</div>
-            <div class="code-block">docker exec -it ollama ollama rm mistral</div>
+# Descarregar da memória, mas preservar arquivos
+docker compose exec ollama ollama stop llama3.2:3b
 
-            <h3>Ver Detalhes do Modelo (Show)</h3>
-            <p>Inspeciona os metadados do modelo, como a licença, o template de prompt e os parâmetros ocultos.</p>
-            <div class="code-title">Terminal (WSL)</div>
-            <div class="code-block">docker exec -it ollama ollama show llama3.2 --modelfile</div>
+# Apagar modelo do armazenamento
+docker compose exec ollama ollama rm qwen3:4b</div>
+        <p><code>ollama list</code> mostra o que está armazenado; <code>ollama ps</code>, o que está carregado. <code>stop</code> libera memória; <code>rm</code> apaga arquivos e pode exigir novo download.</p>
 
-            <!-- Seção 4 -->
-            <h2 id="cli-avancado">4. CLI Avançado e Interação</h2>
-            <p>Você pode abrir um chat isolado apenas no texto (terminal) sem depender da rede ou de interfaces gráficas. É a forma mais direta de medir o tempo de resposta bruto.</p>
-            
-            <div class="code-title">Modo Interativo</div>
-            <div class="code-block">docker exec -it ollama ollama run llama3.2</div>
-            
-            <p>Ao entrar nesse modo, você verá um cursor <code>>>></code>. Dicas de uso avançado:</p>
-            <ul>
-                <li><strong>Comandos internos:</strong> Digite <code>/?</code> para ver os comandos de atalho dentro do chat.</li>
-                <li><strong>Multilinhas:</strong> Para enviar um texto que possui quebras de linha (um código enorme ou documento), envolva a mensagem com três aspas: <code>""" Meu texto aqui """</code>.</li>
-                <li><strong>Sair:</strong> Digite <code>/bye</code> para encerrar o processo.</li>
-            </ul>
+        <h2 id="cli">5. CLI, entrada interativa e integrações</h2>
+        <p>A CLI recebe uma pergunta ou abre um chat interativo. Executá-la no container mantém a versão consistente com o serviço:</p>
+        <div class="code-title">Pergunta direta e chat</div><div class="code-block">docker compose exec ollama ollama run llama3.2:3b "Explique embeddings em três frases."
+docker compose exec -it ollama ollama run llama3.2:3b
 
-            <!-- Seção 5 -->
-            <h2 id="modelfile">5. Compilação Customizada (Modelfile)</h2>
-            <p>O Ollama permite compilar clones especializados de modelos base. Se você não quer repetir "Haja como um especialista" a cada prompt, você injeta isso diretamente no DNA de um novo modelo usando um <strong>Modelfile</strong>.</p>
-            
-            <h3>Criando o Arquivo Modelfile</h3>
-            <p>No seu terminal, crie um arquivo chamado <code>Modelfile</code> com o seguinte conteúdo:</p>
-            <div class="code-title">Arquivo: Modelfile</div>
-            <div class="code-block">FROM llama3.2
+# No chat: /bye encerra. Para texto multilinha, delimite com três aspas.</div>
+        <p>Em execução independente no host, <code>ollama serve</code> inicia o servidor; no laboratório o Compose já inicia esse processo. Em versões compatíveis, <code>ollama launch</code> auxilia a configurar integrações; <code>ollama signin</code> e <code>ollama signout</code> gerenciam conta. Integrações e modelos em nuvem são opcionais e não fazem parte do perfil local padrão.</p>
 
-# 1. Comportamento Base (Instruções do Assistente)
-SYSTEM """Você é um assistente de análise de dados. Responda em tópicos curtos e evite jargões."""
+        <h2 id="modelfile">6. Modelfile: conceito e limites</h2>
+        <p>Um <strong>Modelfile</strong> é uma receita declarativa para criar uma variante de modelo. Define a base, comportamento, parâmetros de inferência, template e mensagens de exemplo. A variante pode ter nome próprio e ser reutilizada por alunos, aplicações e fluxos.</p>
+        <p>Modelfile <strong>não treina nem altera os pesos da base</strong>. Ele personaliza a inferência e o prompt. Fine-tuning/LoRA são processos distintos, que produzem artefatos próprios. Importar pesos preparados também não equivale a treinamento.</p>
+        <p>Instruções não diferenciam maiúsculas de minúsculas. <code>FROM</code> é obrigatória; mantenha-a no início para facilitar leitura. Salve com o nome exato <code>Modelfile</code>, sem extensão extra.</p>
 
-# 2. Parâmetros de Geração (Matemática Pura)
-PARAMETER temperature 0.2      # Quanto menor, menos "criativo/alucinado" e mais determinístico
-PARAMETER num_ctx 8192         # Aumenta a memória da conversa para 8 mil tokens
-PARAMETER top_k 40             # Restringe as escolhas lógicas
-PARAMETER repeat_penalty 1.15  # Punição por repetição
+        <h2 id="instrucoes-modelfile">7. Referência de todas as instruções</h2>
+        <div class="manual-table-wrap"><table class="manual-table"><thead><tr><th>Instrução</th><th>Finalidade</th><th>Exemplo</th></tr></thead><tbody>
+            <tr><td><code>FROM</code></td><td>Obrigatória. Base por tag, diretório Safetensors compatível ou arquivo GGUF.</td><td><code>FROM llama3.2:3b</code></td></tr>
+            <tr><td><code>PARAMETER</code></td><td>Opções de inferência, contexto, amostragem e limite de geração. Pode repetir.</td><td><code>PARAMETER temperature 0.2</code></td></tr>
+            <tr><td><code>SYSTEM</code></td><td>Mensagem de sistema, se o template da base usar o campo.</td><td><code>SYSTEM """Responda em português."""</code></td></tr>
+            <tr><td><code>TEMPLATE</code></td><td>Serialização de mensagens em tokens/texto; depende do modelo.</td><td><code>veja o exemplo completo abaixo</code></td></tr>
+            <tr><td><code>MESSAGE</code></td><td>Mensagens de exemplo com papel <code>system</code>, <code>user</code> ou <code>assistant</code>.</td><td><code>MESSAGE user Olá</code></td></tr>
+            <tr><td><code>LICENSE</code></td><td>Registra licença associada; não substitui a checagem da licença da base.</td><td><code>LICENSE """Texto da licença"""</code></td></tr>
+            <tr><td><code>REQUIRES</code></td><td>Versão mínima do Ollama exigida.</td><td><code>REQUIRES 0.14.0</code></td></tr>
+            <tr><td><code>CAPABILITY</code></td><td>Adiciona capacidade a modelos GGUF/MLX quando aplicável; não torna pesos incompatíveis capazes de uma tarefa.</td><td><code>CAPABILITY decision</code> apenas em pesos compatíveis, treinados para System One.</td></tr>
+        </tbody></table></div>
+        <div class="manual-note warning"><p><strong>Cuidado com TEMPLATE:</strong> não copie template de outra família sem conhecer tokens especiais. Comece com o template herdado, inspecionado por <code>ollama show --modelfile</code>, e altere sistema e parâmetros. Um template incompatível pode quebrar conversas e tool calling.</p></div>
+        <h3>Template: variáveis e sintaxe Go</h3>
+        <p>O campo <code>TEMPLATE</code> é um template Go e representa como a conversa vira entrada do modelo. As variáveis documentadas mais comuns são <code>&#123;&#123; .System &#125;&#125;</code> (mensagem de sistema), <code>&#123;&#123; .Prompt &#125;&#125;</code> (prompt do usuário) e <code>&#123;&#123; .Response &#125;&#125;</code> (ponto onde começa a resposta gerada; o texto posterior é omitido na geração). Condições como <code>&#123;&#123; if .System &#125;&#125;</code> e <code>&#123;&#123; end &#125;&#125;</code> permitem incluir partes apenas quando há conteúdo.</p>
+        <p>Exemplo ilustrativo de um formato ChatML. Os tokens são específicos desse formato e este bloco <strong>não deve substituir o template do llama3.2</strong>; consulte primeiro o template exato da sua base. Tokens finais e sequências <code>stop</code> também precisam combinar com o modelo.</p>
+        <div class="code-title">Exemplo didático · adapte à arquitetura correta</div>
+        <div class="code-block">TEMPLATE """&#123;&#123; if .System &#125;&#125;&lt;|im_start|&gt;system
+&#123;&#123; .System &#125;&#125;&lt;|im_end|&gt;
+&#123;&#123; end &#125;&#125;&#123;&#123; if .Prompt &#125;&#125;&lt;|im_start|&gt;user
+&#123;&#123; .Prompt &#125;&#125;&lt;|im_end|&gt;
+&#123;&#123; end &#125;&#125;&lt;|im_start|&gt;assistant
+&#123;&#123; .Response &#125;&#125;&lt;|im_end|&gt;"""</div>
+        <p><code>SYSTEM</code> define a mensagem de sistema usada pelo template. <code>MESSAGE system ...</code> é uma forma alternativa; mensagens <code>MESSAGE user</code> e <code>MESSAGE assistant</code> criam exemplos de contexto e podem ser repetidas em pares. Comentários começam com <code>#</code>. Blocos longos podem usar aspas triplas.</p>
+        <h2 id="parametros">8. Parâmetros do Modelfile</h2>
+        <p>Parâmetros reconhecidos na referência atual. Defaults podem variar por modelo e versão. Faça alterações graduais e compare um conjunto fixo de solicitações.</p>
+        <div class="manual-table-wrap"><table class="manual-table"><thead><tr><th>Parâmetro</th><th>O que controla</th><th>Tipo / exemplo</th></tr></thead><tbody>
+            <tr><td><code>num_ctx</code></td><td>Janela de contexto; aumentar tende a exigir mais memória.</td><td>inteiro · <code>num_ctx 4096</code></td></tr>
+            <tr><td><code>repeat_last_n</code></td><td>Tokens anteriores considerados para repetição; <code>0</code> desativa, <code>-1</code> usa o contexto.</td><td>inteiro · <code>repeat_last_n 64</code></td></tr>
+            <tr><td><code>repeat_penalty</code></td><td>Força da penalização; valores maiores penalizam mais.</td><td>decimal · <code>repeat_penalty 1.1</code></td></tr>
+            <tr><td><code>temperature</code></td><td>Variação da amostragem; menor tende a ser mais previsível.</td><td>decimal · <code>temperature 0.3</code></td></tr>
+            <tr><td><code>seed</code></td><td>Semente para maior reprodutibilidade, sem garantir igualdade em todo backend.</td><td>inteiro · <code>seed 42</code></td></tr>
+            <tr><td><code>stop</code></td><td>Sequência de parada; repita para declarar várias.</td><td>texto · <code>stop "###"</code></td></tr>
+            <tr><td><code>num_predict</code></td><td>Máximo de tokens de saída; <code>-1</code> não configura limite.</td><td>inteiro · <code>num_predict 512</code></td></tr>
+            <tr><td><code>draft_num_predict</code></td><td>Tokens especulativos quando há modelo draft; sem draft não tem efeito útil.</td><td>inteiro · <code>draft_num_predict 4</code></td></tr>
+            <tr><td><code>top_k</code></td><td>Limita candidatos aos K tokens mais prováveis.</td><td>inteiro · <code>top_k 40</code></td></tr>
+            <tr><td><code>top_p</code></td><td>Amostragem pela massa acumulada de probabilidade.</td><td>decimal · <code>top_p 0.9</code></td></tr>
+            <tr><td><code>min_p</code></td><td>Filtra candidatos por probabilidade relativa ao token mais provável.</td><td>decimal · <code>min_p 0.05</code></td></tr>
+        </tbody></table></div>
+        <p>Opções também podem ser enviadas por requisição em <code>options</code>. Preserve tokens <code>stop</code> exigidos pela base quando modificar templates.</p>
 
-# 3. Exemplo de Injeção de Histórico
-MESSAGE user "Relatório inicial:"
-MESSAGE assistant "Pronto para analisar os dados."</div>
+        <h2 id="customizacao">9. Exemplo completo: tutor de estudos</h2>
+        <p>O exemplo parte do modelo 3B incluído, define o comportamento, configura parâmetros moderados e mostra uma resposta-modelo. Ajuste após comparar resultados; as opções não são universais.</p>
+        <h3>Passo 1 — criar o arquivo</h3>
+        <p>Na pasta do projeto, crie um arquivo chamado <code>Modelfile</code> com este conteúdo:</p>
+        <div class="code-title">Arquivo Modelfile</div>
+        <div class="code-block">FROM llama3.2:3b
 
-            <h3>Compilando o Modelo Customizado</h3>
-            <p>Para construir a sua versão, copie o arquivo para dentro do container e ordene a compilação:</p>
-            <div class="code-title">Terminal (WSL)</div>
-            <div class="code-block">docker cp Modelfile ollama:/Modelfile
-docker exec -it ollama ollama create AnalistaDados -f /Modelfile</div>
-            <p>Após a compilação, o modelo <strong>AnalistaDados</strong> aparecerá no comando <code>ollama list</code> e poderá ser selecionado no n8n ou no Open WebUI.</p>
+SYSTEM """Você é um tutor de inteligência artificial.
+Responda em português do Brasil, explique termos técnicos com clareza
+e organize respostas longas em etapas. Quando não souber, diga isso.
+Não invente fontes, números nem resultados de execução."""
 
-            <!-- Seção 6 -->
-            <h2 id="api-rest">6. Consumo via API REST HTTP</h2>
-            <p>Sistemas corporativos não interagem com o Ollama digitando comandos no terminal. Eles usam <strong>Programação e Redes</strong>. O Ollama expõe um servidor Web (HTTP) na porta <code>11434</code>.</p>
-            <p>Qualquer linguagem de programação (Python, Javascript, Rust) pode enviar uma requisição HTTP POST para o Ollama e receber a resposta em JSON.</p>
-            
-            <h3>Exemplo de Integração Bruta (cURL)</h3>
-            <p>Para comprovar isso, execute este comando no terminal para fazer uma chamada de rede direta ao cérebro de IA:</p>
-            <div class="code-title">Requisição HTTP (POST)</div>
-            <div class="code-block">curl -X POST http://localhost:11434/api/generate -d '{
-  "model": "llama3.2",
-  "prompt": "Explique o conceito de latência de rede em uma frase.",
-  "stream": false
-}'</div>
-            <p>Essa é exatamente a mesma comunicação invisível que ferramentas como o n8n e o LiteLLM fazem por trás das cortinas.</p>
-            
-            <footer class="manual-footer">Desenvolvido por Georges Lucas Silva Queiroz de Albuquerque · <a href="https://github.com/georgeslucas50" target="_blank" rel="noopener noreferrer">GitHub ↗</a> · <a href="https://www.linkedin.com/in/georges-lucas-0928123b3/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a></footer>
-        </div>
-    </div>
-    
+PARAMETER temperature 0.3
+PARAMETER num_ctx 4096
+PARAMETER num_predict 512
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.1
+
+MESSAGE user "O que é um embedding?"
+MESSAGE assistant "É uma representação numérica de um conteúdo, como texto. Ela permite comparar significados e encontrar conteúdos relacionados."</div>
+        <h3>Passo 2 — copiar ao container e criar</h3>
+        <p>No WSL/Linux, na pasta do projeto, obtenha o ID do container gerenciado pelo Compose, copie o Modelfile e crie a variante:</p>
+        <div class="code-title">WSL ou Linux · Bash</div>
+        <div class="code-block">OLLAMA_CONTAINER=$(docker compose ps -q ollama)
+docker cp ./Modelfile "$OLLAMA_CONTAINER:/tmp/Modelfile"
+docker compose exec ollama ollama create tutor-ia:local -f /tmp/Modelfile</div>
+        <p>Se o primeiro comando não retornar um ID, inicie <code>docker compose up -d ollama</code> e repita. O resultado persiste no volume do Ollama.</p>
+        <h3>Passo 3 — testar e integrar</h3>
+        <div class="code-title">Testar o modelo criado</div>
+        <div class="code-block">docker compose exec ollama ollama list
+docker compose exec ollama ollama run tutor-ia:local "Explique RAG e proponha um exercício."
+docker compose exec ollama ollama show --modelfile tutor-ia:local</div>
+        <p>Selecione <code>tutor-ia:local</code> em um cliente Ollama. Para usar via LiteLLM, registre a variante em <code>config/litellm/config.yaml</code>; criá-la no Ollama não adiciona entrada ao gateway. Edite o Modelfile e execute novamente <code>ollama create</code> para atualizar. Use <code>ollama rm tutor-ia:local</code> para remover apenas a variante.</p>
+
+        <h2 id="importacao">10. Importar bases GGUF ou Safetensors</h2>
+        <p><code>FROM</code> aceita uma tag, um diretório Safetensors de arquitetura compatível ou arquivo GGUF. Caminhos relativos são resolvidos a partir do Modelfile. GGUF fragmentado precisa preservar nomes e incluir todos os fragmentos.</p>
+        <div class="code-title">Exemplos dentro do Modelfile</div>
+        <div class="code-block"># Modelo já disponível no Ollama
+FROM llama3.2:3b
+
+# Arquivo GGUF ao lado do Modelfile
+FROM ./modelo-quantizado.gguf
+
+# GGUF fragmentado
+FROM ./modelo-quantizado-*.gguf
+
+# Diretório Safetensors compatível
+FROM ./modelo-safetensors/</div>
+        <p>Arquivos do host precisam estar visíveis no container durante <code>ollama create</code>; copie-os ou monte-os no container e use esse caminho. Ollama não quantiza GGUF automaticamente durante importação. Prepare os pesos e confira a licença antes de compartilhar.</p>
+
+        <h2 id="api">11. API REST local</h2>
+        <p>A API nativa usa HTTP na porta <code>11434</code>. Use <code>localhost</code> no host e <code>ollama</code> dentro da rede Compose. O serviço precisa estar ativo e o modelo baixado.</p>
+        <h3>Geração de texto: <code>/api/generate</code></h3>
+        <p>Recebe um prompt único. <code>stream: false</code> retorna um JSON completo; no modo REST o streaming é ativado por padrão.</p>
+        <div class="code-title">WSL/Linux · cURL</div>
+        <div class="code-block">curl http://localhost:11434/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama3.2:3b",
+    "prompt": "Explique latência de rede em uma frase.",
+    "stream": false
+  }'</div>
+        <h3>Chat com histórico: <code>/api/chat</code></h3>
+        <div class="code-title">Mensagens e opções</div>
+        <div class="code-block">curl http://localhost:11434/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama3.2:3b",
+    "messages": [
+      {"role": "system", "content": "Responda em português e seja objetivo."},
+      {"role": "user", "content": "O que é RAG?"}
+    ],
+    "stream": false,
+    "options": {"temperature": 0.3, "num_ctx": 4096}
+  }'</div>
+        <p>Para continuar a conversa, a aplicação cliente mantém e reenvia mensagens anteriores. No PowerShell, <code>Invoke-RestMethod</code> evita diferenças do alias <code>curl</code>:</p>
+        <div class="code-title">PowerShell · gerar texto</div>
+        <div class="code-block">$body = @{
+  model = 'llama3.2:3b'
+  prompt = 'Explique embeddings em uma frase.'
+  stream = $false
+} | ConvertTo-Json
+Invoke-RestMethod -Uri 'http://localhost:11434/api/generate' -Method Post -ContentType 'application/json' -Body $body</div>
+        <h3>Campos importantes nas requisições</h3>
+        <div class="manual-table-wrap"><table class="manual-table"><thead><tr><th>Campo</th><th>Onde aparece</th><th>Para que serve</th></tr></thead><tbody>
+            <tr><td><code>model</code></td><td>generate, chat e embed</td><td>Nome/tag do modelo local ou compatível com o recurso.</td></tr>
+            <tr><td><code>prompt</code> / <code>messages</code></td><td>generate / chat</td><td>Entrada única ou histórico com papéis de mensagem.</td></tr>
+            <tr><td><code>system</code>, <code>suffix</code>, <code>raw</code></td><td>generate</td><td>Instrução de sistema, sufixo para modelos fill-in-the-middle e bypass do template.</td></tr>
+            <tr><td><code>images</code></td><td>generate ou mensagens de chat</td><td>Imagens codificadas para um modelo com visão.</td></tr>
+            <tr><td><code>format</code>, <code>options</code></td><td>generate e chat</td><td>Formato JSON/Schema e parâmetros de execução como temperatura e contexto.</td></tr>
+            <tr><td><code>stream</code>, <code>keep_alive</code></td><td>generate, chat e embed</td><td>Entrega progressiva e tempo de permanência do modelo carregado.</td></tr>
+            <tr><td><code>think</code></td><td>generate e chat</td><td>Controle de pensamento em modelos compatíveis; os valores são específicos por modelo.</td></tr>
+            <tr><td><code>tools</code></td><td>chat</td><td>Definição de funções que um modelo compatível pode solicitar.</td></tr>
+            <tr><td><code>logprobs</code>, <code>top_logprobs</code></td><td>generate e chat</td><td>Probabilidades dos tokens gerados quando disponíveis.</td></tr>
+            <tr><td><code>input</code>, <code>truncate</code>, <code>dimensions</code></td><td>embed</td><td>Texto ou lote, truncamento e dimensão desejada do vetor.</td></tr>
+        </tbody></table></div>
+        <h3>Endpoints frequentes</h3>
+        <div class="manual-table-wrap"><table class="manual-table"><thead><tr><th>Endpoint</th><th>Método</th><th>Uso</th></tr></thead><tbody>
+            <tr><td><code>/api/generate</code></td><td>POST</td><td>Geração a partir de prompt.</td></tr>
+            <tr><td><code>/api/chat</code></td><td>POST</td><td>Mensagens, ferramentas e imagens com modelos compatíveis.</td></tr>
+            <tr><td><code>/api/embed</code></td><td>POST</td><td>Embeddings de um texto ou lote.</td></tr>
+            <tr><td><code>/api/tags</code> · <code>/api/ps</code></td><td>GET</td><td>Modelos armazenados · modelos em execução.</td></tr>
+            <tr><td><code>/api/show</code></td><td>POST</td><td>Metadados, capacidades, template e parâmetros.</td></tr>
+            <tr><td><code>/api/version</code></td><td>GET</td><td>Versão do servidor.</td></tr>
+            <tr><td><code>/api/pull</code>, <code>/api/create</code>, <code>/api/copy</code>, <code>/api/push</code>, <code>/api/delete</code></td><td>POST</td><td>Gerenciamento por HTTP; algumas operações transmitem progresso.</td></tr>
+        </tbody></table></div>
+        <p>Respostas de geração incluem duração de carga, avaliação do prompt, quantidade de tokens e duração da geração. Compare métricas com prompts e hardware equivalentes.</p>
+        <h2 id="capacidades">12. Capacidades do Ollama</h2>
+        <p>Recursos variam conforme modelo e versão. Consulte <code>ollama show</code> ou <code>/api/show</code>. O suporte do endpoint a um campo não garante que todo modelo consiga usá-lo.</p>
+        <h3>Streaming</h3>
+        <p>Streaming entrega partes enquanto o modelo gera, reduzindo a espera percebida. É padrão no REST; envie <code>"stream": false</code> para receber resposta completa. Clientes devem acumular fragmentos para montar a resposta.</p>
+        <h3>JSON e saídas estruturadas</h3>
+        <p>Envie <code>format: "json"</code> ou um JSON Schema em <code>format</code>. Isso restringe a estrutura, mas não garante conteúdo verdadeiro. Valide a resposta no cliente.</p>
+        <div class="code-title">Exemplo com JSON Schema</div>
+        <div class="code-block">curl http://localhost:11434/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama3.2:3b",
+    "messages": [{"role": "user", "content": "Classifique: O servidor não inicia. Retorne categoria e urgência."}],
+    "format": {
+      "type": "object",
+      "properties": {
+        "categoria": {"type": "string"},
+        "urgencia": {"type": "string"}
+      },
+      "required": ["categoria", "urgencia"]
+    },
+    "stream": false
+  }'</div>
+        <h3>Visão e imagens</h3>
+        <p>Modelos de visão aceitam texto e imagem. A API REST espera imagens Base64 em <code>images</code>; SDKs também podem aceitar caminho, bytes ou URL. O <code>llama3.2:3b</code> do laboratório é modelo de texto: baixe um modelo multimodal compatível para essa tarefa.</p>
+        <p>Para experimentar, instale <code>gemma3:4b</code>, um modelo multimodal de visão; a variante padrão quantizada ocupa cerca de 3,4 GB no disco e requer Ollama 0.6 ou posterior. Confira os termos de uso e o espaço disponível antes do download.</p>
+        <div class="code-title">Terminal do projeto · baixar a base de visão</div>
+        <div class="code-block">docker compose exec ollama ollama pull gemma3:4b</div>
+        <div class="code-title">Notebook Jupyter · enviar uma imagem</div>
+        <div class="code-block">from ollama import chat
+
+caminho_imagem = "/caminho/visivel/no/notebook.png"
+resposta = chat(
+    model="gemma3:4b",
+    messages=[{
+        "role": "user",
+        "content": "Descreva o que aparece nesta imagem.",
+        "images": [caminho_imagem],
+    }],
+)
+print(resposta.message.content)</div>
+        <h3>Embeddings e RAG</h3>
+        <p>Embeddings transformam textos em vetores para busca semântica e RAG. O projeto inclui <code>nomic-embed-text</code>. Use o mesmo modelo e dimensão para indexar e consultar. Divida documentos em blocos antes de embeddar e armazene os vetores no Qdrant ou banco compatível.</p>
+        <div class="code-title">Embeddings em lote</div>
+        <div class="code-block">curl http://localhost:11434/api/embed \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "nomic-embed-text",
+    "input": ["Primeiro texto para indexação.", "Segundo texto relacionado."],
+    "truncate": false
+  }'</div>
+        <h3>Tool calling (chamada de ferramentas)</h3>
+        <p>Exercício no notebook: instale o modelo com <code>docker compose exec ollama ollama pull qwen3:4b</code>. O SDK converte a função Python em definição de ferramenta; o aluno executa a função localmente e devolve o resultado para o modelo compor a resposta final.</p>
+        <div class="code-title">Tool calling com SDK Python · função fictícia local</div>
+        <div class="code-block">from ollama import chat
+
+def consultar_temperatura(cidade: str) -> str:
+    """Retorna uma temperatura de exemplo para uma cidade."""
+    tabela = {"Brasília": "25 °C", "São Paulo": "22 °C"}
+    return tabela.get(cidade, "Sem dado de exemplo")
+
+mensagens = [{"role": "user", "content": "Qual a temperatura em Brasília?"}]
+resposta = chat(model="qwen3:4b", messages=mensagens, tools=[consultar_temperatura])
+mensagens.append(resposta.message)
+
+if resposta.message.tool_calls:
+    chamada = resposta.message.tool_calls[0]
+    resultado = consultar_temperatura(**chamada.function.arguments)
+    mensagens.append({
+        "role": "tool",
+        "tool_name": chamada.function.name,
+        "content": str(resultado),
+    })
+    final = chat(model="qwen3:4b", messages=mensagens, tools=[consultar_temperatura])
+    print(final.message.content)
+else:
+    print(resposta.message.content)</div>
+        <h3>Thinking / modelos de raciocínio</h3>
+        <p>Alguns modelos separam um campo <code>thinking</code> e aceitam <code>think</code>. Valores variam por modelo: consulte <code>/api/show</code>. A aplicação deve decidir o que exibir e não expor rastros internos automaticamente.</p>
+        <h3>Modelos de decisão</h3>
+        <p>Versões recentes também oferecem modelos especializados em classificação, escolha entre categorias e avaliação por níveis. O recurso System One requer Ollama v0.35 ou superior e modelos treinados para essa tarefa; ele não é uma capacidade genérica de qualquer LLM.</p>
+        <div class="code-title">Exemplo opcional · classificar chamado com Nimble</div>
+        <div class="code-block">docker compose exec ollama ollama pull nimble
+docker compose exec ollama ollama run nimble --ask "Qual equipe deve cuidar deste chamado?" --choice suporte="Suporte técnico" --choice financeiro="Financeiro" &lt; chamado.txt</div>
+        <h3>Cloud, busca na web e integrações externas</h3>
+        <p>Ollama Cloud e a API de busca na web são recursos online opcionais, distintos da inferência local. Modelos Cloud e busca exigem autenticação/credencial e enviam solicitações ao serviço hospedado. A busca web usa a API <code>https://ollama.com/api/web_search</code>; mantenha a chave fora do notebook compartilhado, do frontend e do Git.</p>
+        <div class="code-title">Busca web opcional · WSL/Linux · requer API key</div>
+        <div class="code-block">export OLLAMA_API_KEY="sua-chave"
+curl https://ollama.com/api/web_search \
+  -H "Authorization: Bearer $OLLAMA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"documentação do Ollama","max_results":5}'</div>
+        <p>Outros recursos incluem <code>ollama launch</code> para integrações suportadas e compatibilidade parcial com clientes OpenAI e Anthropic. A disponibilidade depende da versão, do aplicativo e da configuração. Eles não são ativados pelo Compose local padrão.</p>
+
+        <h2 id="python">13. Python, Jupyter e compatibilidade</h2>
+        <h3>SDK Ollama no Jupyter</h3>
+        <p>JupyterLab está na rede Docker; dentro do notebook, use <code>http://ollama:11434</code>. Se o pacote não estiver instalado no kernel, instale-o:</p>
+        <div class="code-title">Notebook · Python</div>
+        <div class="code-block">%pip install ollama
+
+from ollama import chat
+
+resposta = chat(
+    model="llama3.2:3b",
+    messages=[{"role": "user", "content": "Explique o que é um modelo local."}],
+    stream=False,
+)
+print(resposta.message.content)</div>
+        <p>Em Python executado no host, use <code>http://localhost:11434</code>. Em containers Compose, o endereço DNS é <code>ollama</code>.</p>
+        <h3>Cliente compatível com OpenAI</h3>
+        <p>Ollama oferece um subconjunto de compatibilidade em <code>/v1</code>; nem todos os recursos ou formatos são equivalentes. A chave abaixo é exigida pelo cliente, mas ignorada pelo servidor local.</p>
+        <div class="code-title">Notebook · cliente OpenAI para Ollama local</div>
+        <div class="code-block">%pip install openai
+
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://ollama:11434/v1/",
+    api_key="ollama",
+)
+resposta = client.chat.completions.create(
+    model="llama3.2:3b",
+    messages=[{"role": "user", "content": "Defina inferência local em uma frase."}],
+)
+print(resposta.choices[0].message.content)</div>
+        <p>Para clientes internos, o laboratório também oferece LiteLLM em <code>http://litellm:4000</code>, com gateway e observabilidade conforme a configuração do projeto.</p>
+
+        <h2 id="desempenho">14. Desempenho, configuração e solução de problemas</h2>
+        <h3>Diagnóstico</h3>
+        <div class="code-title">Terminal do projeto</div>
+        <div class="code-block">docker compose ps ollama
+docker compose logs --tail=100 ollama
+docker compose exec ollama ollama ps
+docker stats</div>
+        <p>Em GPU NVIDIA, confira também <code>nvidia-smi</code> no host Linux/WSL e se o runtime disponibiliza a GPU aos containers. Sem GPU, Ollama pode executar em CPU, com desempenho diferente.</p>
+        <h3>Configurações do Compose do laboratório</h3>
+        <p>O serviço usa <code>OLLAMA_KEEP_ALIVE=10m</code>, <code>OLLAMA_MAX_LOADED_MODELS=1</code>, <code>OLLAMA_NUM_PARALLEL=1</code>, Flash Attention e cache KV <code>q8_0</code>. São ajustes para equilibrar memória e resposta; alterá-los pode elevar o consumo ou mudar o desempenho. Reinicie o serviço para aplicar as alterações no Compose.</p>
+        <h3>Como reduzir latência</h3>
+        <ol>
+            <li>Separe o tempo da primeira carga das gerações seguintes; observe <code>load_duration</code> e <code>eval_duration</code>.</li>
+            <li>Repita a mesma pergunta e compare tokens, contexto e <code>ollama ps</code>.</li>
+            <li>Use modelo ou contexto menores quando a memória estiver pressionada ou houver offload para CPU.</li>
+            <li>Limite saídas com <code>num_predict</code> quando a tarefa não exigir respostas longas.</li>
+            <li>Evite vários modelos carregados simultaneamente nesta configuração.</li>
+        </ol>
+        <h3>Problemas frequentes</h3>
+        <ul>
+            <li><strong>Connection refused:</strong> confira serviço e logs; use <code>localhost</code> no host e <code>ollama</code> dentro da rede Compose.</li>
+            <li><strong>Model not found:</strong> confira nome/tag com <code>ollama list</code> e baixe com <code>ollama pull</code>.</li>
+            <li><strong>Lentidão ou falta de memória:</strong> tente modelo/contexto menores e observe CPU, GPU e RAM.</li>
+            <li><strong>GPU não utilizada:</strong> confira driver, GPU no WSL, Container Toolkit e logs.</li>
+            <li><strong>FROM não acha arquivo:</strong> a CLI está no container; copie ou monte pesos em caminho visível nele.</li>
+            <li><strong>Resposta pior após customização:</strong> restaure o template original e confira <code>ollama show --modelfile</code>.</li>
+        </ul>
+        <div class="manual-note warning"><p><strong>Exposição de rede:</strong> o Compose limita a API ao loopback. Se mudar o binding, planeje firewall, autenticação por gateway/proxy e controle de acesso antes de permitir conexões de outros computadores.</p></div>
+
+        <h2 id="referencias">15. Referências oficiais</h2>
+        <p>Ollama evolui rapidamente. Confira compatibilidade, modelos e parâmetros na documentação oficial:</p>
+        <ul class="reference-list">
+            <li><a href="https://docs.ollama.com/modelfile" target="_blank" rel="noopener noreferrer">Modelfile Reference</a> — sintaxe, instruções, templates e parâmetros.</li>
+            <li><a href="https://docs.ollama.com/cli" target="_blank" rel="noopener noreferrer">CLI Reference</a> e <a href="https://ollama.com/library" target="_blank" rel="noopener noreferrer">catálogo de modelos</a>.</li>
+            <li><a href="https://docs.ollama.com/api/introduction" target="_blank" rel="noopener noreferrer">API Introduction</a>, <a href="https://docs.ollama.com/api/generate" target="_blank" rel="noopener noreferrer">Generate</a>, <a href="https://docs.ollama.com/api/chat" target="_blank" rel="noopener noreferrer">Chat</a> e <a href="https://docs.ollama.com/api/embed" target="_blank" rel="noopener noreferrer">Embed</a>.</li>
+            <li><a href="https://docs.ollama.com/capabilities/web-search" target="_blank" rel="noopener noreferrer">Web search</a>, <a href="https://docs.ollama.com/capabilities/decision" target="_blank" rel="noopener noreferrer">Decision</a>, <a href="https://docs.ollama.com/capabilities/embeddings" target="_blank" rel="noopener noreferrer">Embeddings</a>, <a href="https://docs.ollama.com/capabilities/vision" target="_blank" rel="noopener noreferrer">Vision</a>, <a href="https://docs.ollama.com/capabilities/tool-calling" target="_blank" rel="noopener noreferrer">Tool calling</a>, <a href="https://docs.ollama.com/capabilities/structured-outputs" target="_blank" rel="noopener noreferrer">Structured outputs</a> e <a href="https://docs.ollama.com/capabilities/thinking" target="_blank" rel="noopener noreferrer">Thinking</a>.</li>
+            <li><a href="https://docs.ollama.com/import" target="_blank" rel="noopener noreferrer">Importing a Model</a>, <a href="https://docs.ollama.com/context-length" target="_blank" rel="noopener noreferrer">Context length</a>, <a href="https://docs.ollama.com/gpu" target="_blank" rel="noopener noreferrer">Hardware support</a>, <a href="https://docs.ollama.com/troubleshooting" target="_blank" rel="noopener noreferrer">Troubleshooting</a> e <a href="https://docs.ollama.com/api/authentication" target="_blank" rel="noopener noreferrer">Authentication</a>, <a href="https://docs.ollama.com/api/openai-compatibility" target="_blank" rel="noopener noreferrer">OpenAI compatibility</a> e <a href="https://docs.ollama.com/api/anthropic-compatibility" target="_blank" rel="noopener noreferrer">Anthropic compatibility</a>.</li>
+        </ul>
+        <footer class="manual-footer">Desenvolvido por Georges Lucas Silva Queiroz de Albuquerque · <a href="https://github.com/georgeslucas50" target="_blank" rel="noopener noreferrer">GitHub ↗</a> · <a href="https://www.linkedin.com/in/georges-lucas-0928123b3/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a></footer>
+    </div></main>
     <script>
         // Lógica simples para iluminar o menu lateral de acordo com a rolagem
         const mainContent = document.querySelector('.main-content');
         const sections = document.querySelectorAll('h2[id]');
         const navLinks = document.querySelectorAll('.sidebar a[href^="#"]');
 
-        mainContent.addEventListener('scroll', () => {
-            let current = '';
+        const updateActiveSection = () => {
+            let current = sections[0]?.getAttribute('id') || '';
+            const activationLine = Math.min(window.innerHeight * 0.32, 180);
             sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (mainContent.scrollTop >= (sectionTop - 100)) {
-                    current = section.getAttribute('id');
-                }
+                if (section.getBoundingClientRect().top <= activationLine) current = section.getAttribute('id');
             });
-
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 if (link.getAttribute('href').includes(current) && current !== '') {
                     link.classList.add('active');
                 }
             });
-        });
+        };
+
+        mainContent.addEventListener('scroll', updateActiveSection, { passive: true });
+        window.addEventListener('scroll', updateActiveSection, { passive: true });
+        window.addEventListener('resize', updateActiveSection);
+        updateActiveSection();
     </script>
 </body>
 </html>

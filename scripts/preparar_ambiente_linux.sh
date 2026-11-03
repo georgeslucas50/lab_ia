@@ -103,22 +103,27 @@ configure_nvidia() {
     return 1
   fi
 
-  printf '\n==> Instalando NVIDIA Container Toolkit para o driver NVIDIA já existente no Ubuntu\n'
+  printf '\n==> Verificando NVIDIA Container Toolkit para o driver NVIDIA já existente no Ubuntu\n'
   # Em Linux nativo, o driver pertence ao host. O instalador não instala nem troca drivers.
-  sudo apt-get install -y --no-install-recommends ca-certificates curl gnupg || return 1
-  sudo install -m 0755 -d /usr/share/keyrings || return 1
-  curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
-    | sudo gpg --dearmor --yes -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-    || return 1
-  curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
-    | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
-    | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list >/dev/null \
-    || return 1
-  sudo apt-get update || return 1
-  sudo apt-get install -y nvidia-container-toolkit || return 1
-  sudo nvidia-ctk runtime configure --runtime=docker || return 1
-  printf 'A configuração da GPU reiniciará o Docker Engine; containers de outros projetos podem reiniciar brevemente.\n'
-  sudo systemctl restart docker.service || return 1
+  if ! dpkg-query -W -f='${db:Status-Status}' nvidia-container-toolkit 2>/dev/null | grep -qx installed \
+    || ! sudo docker info --format '{{json .Runtimes}}' 2>/dev/null | grep -q 'nvidia'; then
+    sudo apt-get install -y --no-install-recommends ca-certificates curl gnupg || return 1
+    sudo install -m 0755 -d /usr/share/keyrings || return 1
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+      | sudo gpg --dearmor --yes -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+      || return 1
+    curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+      | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+      | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list >/dev/null \
+      || return 1
+    sudo apt-get update || return 1
+    sudo apt-get install -y nvidia-container-toolkit || return 1
+    sudo nvidia-ctk runtime configure --runtime=docker || return 1
+    printf 'A configuração da GPU reiniciará o Docker Engine; containers de outros projetos podem reiniciar brevemente.\n'
+    sudo systemctl restart docker.service || return 1
+  else
+    printf 'NVIDIA Container Toolkit e runtime já estão configurados.\n'
+  fi
 
   # O teste confirma que o daemon de containers recebeu a GPU antes de ativar o overlay.
   sudo docker run --rm --runtime=nvidia --gpus all ubuntu:24.04 nvidia-smi >/dev/null 2>&1
@@ -187,8 +192,11 @@ if [[ "$GPU_COMPOSE" == true ]]; then
 fi
 PROFILES=(--profile full --profile management)
 
-printf '\n==> Validando e iniciando os serviços do laboratório\n'
+printf '\n==> Baixando imagens necessárias e construindo os serviços locais\n'
 sudo docker compose "${COMPOSE_FILES[@]}" "${PROFILES[@]}" config --quiet
+sudo docker compose "${COMPOSE_FILES[@]}" "${PROFILES[@]}" build --pull
+
+printf '\n==> Iniciando todos os serviços do laboratório\n'
 sudo docker compose "${COMPOSE_FILES[@]}" "${PROFILES[@]}" up -d --build
 
 printf '\n==> Aguardando o Ollama\n'
@@ -207,6 +215,9 @@ fi
 printf '\n==> Baixando os modelos iniciais para chat e embeddings\n'
 sudo docker compose "${COMPOSE_FILES[@]}" exec -T ollama ollama pull llama3.2:3b
 sudo docker compose "${COMPOSE_FILES[@]}" exec -T ollama ollama pull nomic-embed-text
+
+printf '\n==> Conferindo o estado de todos os containers e healthchecks\n'
+sudo bash "$PROJECT_ROOT/scripts/aguardar_servicos.sh" "$PROJECT_ROOT"
 
 printf '\n==> Aguardando o dashboard\n'
 dashboard_ready=false

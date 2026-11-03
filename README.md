@@ -4,6 +4,8 @@ Desenvolvido por **Georges Lucas Silva Queiroz de Albuquerque** · [GitHub](http
 
 Ambiente local de estudo para modelos, aplicações de chat, automações e serviços de apoio a RAG. O laboratório pode rodar no Ubuntu pelo WSL 2 no Windows ou diretamente em uma instalação nativa do Ubuntu. As duas opções usam os mesmos arquivos Docker Compose; cada host mantém suas próprias imagens, modelos e volumes. A GPU NVIDIA é opcional; com driver compatível, o Ollama usa a GPU, e sem ela funciona em CPU.
 
+Para manutenção do repositório, agentes de programação devem começar por [AGENTS.md](AGENTS.md). Consulte também a [arquitetura atual](docs/ARCHITECTURE.md) e a [análise técnica e roteiro de evolução](docs/ANALISE_E_PLANO.md). O README é a referência de instalação para alunos.
+
 ## Instalação no Linux nativo
 
 O instalador automatizado atende Ubuntu LTS 22.04, 24.04 ou 26.04 em computadores x86_64/amd64 com systemd. Em outras distribuições, os arquivos Compose podem ser usados após a configuração manual do Docker Engine e, se houver GPU, do NVIDIA Container Toolkit.
@@ -21,7 +23,7 @@ chmod +x scripts/preparar_ambiente_linux.sh scripts/abrir_jupyter.sh
 ./scripts/preparar_ambiente_linux.sh
 ```
 
-O instalador instala o Docker Engine e o plugin Docker Compose oficiais quando eles não estão disponíveis, cria ou completa `.env` sem substituir valores locais já preenchidos, valida a configuração e sobe os perfis `full` e `management`. Se identificar uma GPU NVIDIA com driver funcional, instala o NVIDIA Container Toolkit, testa o acesso à GPU e habilita o complemento Compose; essa configuração reinicia o Docker Engine e pode reiniciar brevemente containers de outros projetos. Caso contrário, sobe o laboratório em CPU. Se encontrar pacotes Docker incompatíveis, o instalador para sem removê-los ou apagar dados existentes. No primeiro uso, o seu usuário é incluído no grupo `docker`; encerre e reabra a sessão do Ubuntu para executar comandos Docker sem `sudo`. Esse grupo concede privilégios equivalentes a root.
+O instalador verifica ou instala o Docker Engine e o plugin Docker Compose oficiais, cria ou completa `.env` sem substituir valores locais preenchidos, valida e constrói as imagens locais e baixa as imagens remotas necessárias aos perfis `full` e `management`. Depois inicia os 19 serviços, baixa `llama3.2:3b` e `nomic-embed-text` e aguarda os containers ficarem em execução e os healthchecks configurados ficarem saudáveis. A primeira instalação pode levar bastante tempo e baixar vários gigabytes. Se identificar uma GPU NVIDIA com driver funcional, instala o NVIDIA Container Toolkit, testa o uso da GPU por um container e habilita o complemento Compose; essa configuração reinicia o Docker Engine e pode reiniciar brevemente containers de outros projetos. Caso contrário, sobe o laboratório em CPU. Se encontrar pacotes Docker incompatíveis, o instalador para sem removê-los ou apagar dados existentes. No primeiro uso, o seu usuário é incluído no grupo `docker`; encerre e reabra a sessão do Ubuntu para executar comandos Docker sem `sudo`. Esse grupo concede privilégios equivalentes a root.
 
 Depois da instalação, acesse [http://localhost:9090/dashboard](http://localhost:9090/dashboard). Para abrir o JupyterLab com autenticação, execute `./scripts/abrir_jupyter.sh`.
 
@@ -43,19 +45,20 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 Essa configuração mantém os finais de linha compatíveis com os scripts Linux do WSL. O instalador solicita elevação pelo UAC quando necessário. Aceite para habilitar os componentes do Windows e configurar o WSL 2. Execute os comandos na pasta clonada; mantenha essa pasta no mesmo local para futuras atualizações.
 
-O instalador habilita WSL 2, instala Ubuntu 24.04, configura o usuário Linux `aluno` automaticamente na distribuição nova, habilita systemd e instala Docker Compose. Uma distribuição `Ubuntu-24.04` já existente é preservada. Se detectar uma GPU NVIDIA sem driver funcional, busca o driver assinado no site da NVIDIA e instala apenas o driver de vídeo no Windows. Se o catálogo não reconhecer a GPU ou a assinatura falhar, a stack continua em CPU e informa como habilitar a GPU depois. No Ubuntu WSL, instala o NVIDIA Container Toolkit, nunca o driver Linux. Se o Windows pedir reinicialização, o instalador retoma a configuração no próximo login.
+O instalador verifica ou habilita WSL 2, instala Ubuntu 24.04 quando necessário, configura o usuário Linux `aluno` automaticamente na distribuição nova, habilita systemd e verifica ou instala o Docker Engine e o plugin Compose dentro do Ubuntu. Uma distribuição `Ubuntu-24.04` já existente é preservada. Se detectar uma GPU NVIDIA sem driver funcional, busca o driver assinado no site da NVIDIA e instala apenas o driver de vídeo no Windows. O instalador só ativa a GPU no Compose depois de confirmar o driver no Windows, no WSL e em um container Docker. Se a GPU não estiver disponível, o laboratório continua em CPU. No Ubuntu WSL, instala o NVIDIA Container Toolkit, nunca o driver Linux. Se o Windows pedir reinicialização, o instalador retoma a configuração no próximo login.
 
-O script cria `.env` com segredos aleatórios quando o arquivo não existe e acrescenta somente chaves ausentes ou vazias quando ele já existe. Os valores preenchidos são preservados. Não compartilhe esse arquivo.
+O script cria `.env` com segredos aleatórios quando o arquivo não existe e acrescenta somente chaves ausentes ou vazias quando ele já existe. Os valores preenchidos são preservados. Não compartilhe esse arquivo. Em seguida, valida o Compose, constrói as imagens locais, baixa as imagens remotas, inicia os perfis `full` e `management` (19 serviços), baixa os dois modelos iniciais e confere o estado de todos os containers e healthchecks configurados. A primeira execução pode baixar vários gigabytes e demorar; o script informa quais serviços precisam de atenção se algum não ficar pronto.
 
-Após a instalação, os modelos iniciais `llama3.2:3b` e `nomic-embed-text` são baixados. O dashboard abre em [http://localhost:9090/dashboard](http://localhost:9090/dashboard); a página inicial fica em [http://localhost:9090](http://localhost:9090).
+Quando a preparação terminar, o dashboard abre em [http://localhost:9090/dashboard](http://localhost:9090/dashboard); a página inicial fica em [http://localhost:9090](http://localhost:9090).
 
 ## Serviços e portas
 
-O Compose define 18 serviços. O perfil `full` inicia os 17 serviços de aprendizagem; Portainer fica separado no perfil de administração `management`. Oito serviços essenciais iniciam sem perfil. Os instaladores Windows e Linux ativam os dois perfis e sobem os 18 serviços; numa execução manual, use só `full` para deixar Portainer parado.
+O Compose define 19 serviços: 17 serviços de aprendizagem, o `system-updater` de apoio e o Portainer. Oito serviços de aprendizagem iniciam sem perfil; o perfil `full` acrescenta os outros nove. Assim, `docker compose --profile full up -d` inicia 18 containers contando o atualizador, sem Portainer; o perfil `management` acrescenta o Portainer. Os instaladores Windows e Linux ativam `full` e `management`.
 
 | Serviço | Porta local | Perfil | Uso |
 | --- | ---: | --- | --- |
-| Dashboard do laboratório | 9090 | sempre | Links e estado dos serviços |
+| Dashboard do laboratório | 9090 | sempre | Links, estado/controle dos serviços, documentação, resets, atualizações e destino da Sala de Aula |
+| `system-updater` | — (rede interna) | sempre | Consulta o branch padrão do GitHub e aplica atualizações solicitadas pelo dashboard |
 | Open WebUI | 3000 | sempre | Chat, upload e interface de modelos |
 | n8n | 5678 | `full`, `workflows` | Workflows e automações |
 | LiteLLM | 4000 | sempre | Gateway de modelos OpenAI compatível |
@@ -78,6 +81,8 @@ As portas publicadas ficam vinculadas a `127.0.0.1`, para acesso apenas nesta m�
 
 No dashboard, **Documentação** abre o índice de guias por container e **Configurações** permite zerar um serviço ou o laboratório inteiro. O reset individual apaga os dados persistentes ligados ao serviço; o reset do PostgreSQL afeta também os bancos de n8n, Flowise, Open WebUI, LiteLLM e Phoenix. O reset do Redis limpa o cache compartilhado; os resets do LiteLLM e do Python MCP também limpam esse cache para restaurar seus estados iniciais, afetando temporariamente o cache e a memória compartilhada com outros serviços. O reset do Jupyter apaga notebooks e arquivos salvos. O reset completo limpa todos os volumes do projeto, recria os bancos iniciais e baixa novamente `llama3.2:3b` e `nomic-embed-text`; exige digitar a confirmação mostrada no painel. Arquivos do projeto, `.env`, WSL e imagens Docker são preservados.
 
+Em **Configurações**, informe a URL HTTP ou HTTPS da plataforma de aulas para habilitar o botão **Sala de Aula** na página inicial. Sem um destino configurado, o cartão informa que está em construção e oferece um atalho para essa configuração. O endereço é salvo no volume persistente do dashboard e permanece após atualizações do projeto e resets dos dados dos alunos; deixe o campo vazio e salve para remover o destino.
+
 Em **Configurações**, **Verificar atualizações** consulta o branch padrão diretamente no GitHub, sem depender da branch, dos commits ou das alterações pendentes da cópia local. **Atualizar sistema** sincroniza o código com o branch padrão publicado, inclusive quando não há um commit novo para reaplicar. Antes de trocar os arquivos, o atualizador guarda alterações locais e não rastreadas em um backup do Git; elas não são mescladas automaticamente. O arquivo `.env` e os volumes nomeados são preservados. A operação exige digitar `ATUALIZAR LABORATÓRIO`, valida o Compose, atualiza imagens e recria os serviços dos perfis `full` e `management`. Os containers podem reiniciar e as imagens podem exigir vários gigabytes de download. O instalador cria um token interno aleatório em `.env`; `GITHUB_TOKEN` é opcional e só deve ser preenchido localmente para remotos privados via HTTPS. Nunca publique `.env`.
 
 Em instalações antigas feitas pelo ZIP, execute o instalador atualizado para que ele tente preparar os metadados Git sem substituir arquivos locais. Para novas instalações, use sempre `git clone` como mostrado acima. Se os arquivos locais diferirem do repositório remoto, o dashboard bloqueará a atualização até que as diferenças sejam resolvidas.
@@ -98,4 +103,4 @@ No Ubuntu nativo, confira o driver com `nvidia-smi`. O instalador habilita a GPU
 
 Se não houver GPU NVIDIA, use os modelos em CPU; o desempenho será menor.
 
-Veja a análise e as etapas recomendadas em [docs/ANALISE_E_PLANO.md](docs/ANALISE_E_PLANO.md).
+Veja a [arquitetura atual](docs/ARCHITECTURE.md), a [análise técnica e roteiro de evolução](docs/ANALISE_E_PLANO.md) e as [instruções para agentes de programação](AGENTS.md).

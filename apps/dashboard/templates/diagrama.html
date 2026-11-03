@@ -3,179 +3,419 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura | Laboratório IA</title>
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <meta name="theme-color" content="#0b1020">
+    <title>Arquitetura | Laboratório de IA</title>
     <style>
-        :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background: radial-gradient(ellipse at 80% -15%, #29214b 0, transparent 35%), #0b1020; color: #e8edf7; overflow: hidden; }
-        #mynetwork { width: 100vw; height: 100vh; }
-        .vis-network { outline: none; }
-        .diagram-header { position: absolute; inset: 0 0 auto; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; pointer-events: none; }
-        .diagram-title-card { padding: 15px 18px; border: 1px solid #303a52; border-radius: 16px; background: #101727d9; box-shadow: 0 16px 46px #03071255; backdrop-filter: blur(16px); pointer-events: auto; }
-        .diagram-title-card h1 { margin: 0; color: #f0efff; font-size: clamp(16px, 2vw, 21px); letter-spacing: -.03em; }
-        .diagram-title-card p { margin: 5px 0 0; color: #a5b0c4; font-size: 12px; }
-        .diagram-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; pointer-events: auto; }
-        .diagram-link { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; color: #e8e4ff; border: 1px solid #504878; border-radius: 11px; background: #17172ee8; font-size: 12px; font-weight: 600; text-decoration: none; transition: border-color .18s, background .18s, transform .18s; backdrop-filter: blur(12px); }
-        .diagram-link:hover { transform: translateY(-1px); border-color: #9688eb; background: #242044f2; }
-        .diagram-link--github { color: #bdb3ff; }
-        .vis-tooltip {
-            position: absolute;
-            visibility: hidden;
-            padding: 10px;
-            white-space: nowrap;
-            font-family: verdana;
-            font-size: 14px;
-            color: #fff;
-            background-color: rgba(17, 24, 39, 0.96);
-            border-radius: 10px;
-            border: 1px solid #514881;
-            box-shadow: 0 12px 30px #03071255;
-            z-index: 100;
+        :root {
+            color-scheme: dark;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --bg: #0b1020;
+            --panel: #111827;
+            --panel-raised: #151e31;
+            --line: #263149;
+            --text: #e8edf7;
+            --muted: #95a1b6;
+            --faint: #68758c;
+            --purple: #a99aff;
+            --green: #42d6a4;
+            --blue: #72b7ff;
+            --amber: #f3bb68;
         }
-        @media (max-width: 600px) {
-            .diagram-header { align-items: flex-start; flex-direction: column; padding: 12px; }
-            .diagram-title-card { padding: 12px 14px; }
-            .diagram-actions { justify-content: flex-start; }
-            .diagram-link { min-height: 36px; padding-inline: 10px; font-size: 11px; }
+        * { box-sizing: border-box; }
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 77% -15%, #453b782e 0, transparent 36%),
+                radial-gradient(ellipse at 4% 47%, #1733531b 0, transparent 32%),
+                var(--bg);
+        }
+        a { color: inherit; text-decoration: none; }
+        button, a { -webkit-tap-highlight-color: transparent; }
+        a:focus-visible, summary:focus-visible { outline: 2px solid #b8aaff; outline-offset: 3px; }
+        .topbar {
+            position: sticky;
+            z-index: 5;
+            top: 0;
+            display: flex;
+            min-height: 66px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 0 clamp(18px, 4vw, 58px);
+            border-bottom: 1px solid #263149bd;
+            background: #0c1221d9;
+            backdrop-filter: blur(18px);
+        }
+        .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+        .brand-mark {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            color: white;
+            border: 1px solid #c2b8ff42;
+            border-radius: 11px;
+            background: linear-gradient(145deg, #9582f3, #5b49c7);
+            box-shadow: 0 5px 22px #7965e63d;
+            font-size: 17px;
+        }
+        .brand strong, .brand small { display: block; }
+        .brand strong { font-size: 12px; letter-spacing: -.15px; }
+        .brand small { margin-top: 3px; color: var(--faint); font-size: 10px; }
+        .top-actions { display: flex; align-items: center; gap: 8px; }
+        .top-link {
+            display: inline-flex;
+            min-height: 35px;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            color: #b7c1d2;
+            border: 1px solid #29344a;
+            border-radius: 9px;
+            background: #151d2d;
+            font-size: 11px;
+            font-weight: 600;
+            transition: .18s ease;
+        }
+        .top-link:hover { color: white; border-color: #6257a5; background: #201e39; transform: translateY(-1px); }
+        .top-link.primary { color: #e8e3ff; border-color: #7161cf70; background: #7161cf20; }
+        .page-shell { width: min(1390px, calc(100% - 48px)); margin: 0 auto; }
+        .hero {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
+            align-items: end;
+            gap: 32px;
+            padding: 51px 0 30px;
+        }
+        .hero::before {
+            position: absolute;
+            top: 39px;
+            left: -22px;
+            width: 3px;
+            height: 70px;
+            border-radius: 5px;
+            background: linear-gradient(var(--purple), transparent);
+            box-shadow: 0 0 22px #a99aff55;
+            content: "";
+        }
+        .eyebrow { margin: 0 0 10px; color: var(--purple); font-size: 10px; font-weight: 750; letter-spacing: 1.7px; text-transform: uppercase; }
+        h1 { margin: 0; font-size: clamp(29px, 4vw, 44px); font-weight: 720; letter-spacing: -1.8px; line-height: 1.06; }
+        .hero-copy { max-width: 720px; margin: 12px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+        .hero-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            padding: 12px;
+            border: 1px solid #303952;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #171e30e8, #101727e8);
+            box-shadow: inset 0 1px #ffffff09, 0 14px 40px #0002;
+        }
+        .metric { min-width: 0; padding: 7px 9px; }
+        .metric strong { display: block; color: #f0efff; font-size: 21px; letter-spacing: -.7px; }
+        .metric span { display: block; margin-top: 3px; color: #8e9bb1; font-size: 11px; line-height: 1.4; }
+        .metric:nth-child(2) strong { color: var(--blue); }
+        .access-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            grid-column: 1 / -1;
+            padding: 9px 10px;
+            color: #9eacc1;
+            border-top: 1px solid #29344a;
+            font-size: 11px;
+        }
+        .access-note b { color: var(--green); font: 600 10px ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .access-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--green); box-shadow: 0 0 11px #42d6a477; }
+        .section-label { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; color: #bac4d5; font-size: 12px; font-weight: 700; }
+        .section-label::after { height: 1px; flex: 1; background: linear-gradient(90deg, #2a354c, transparent); content: ""; }
+        .architecture-key { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: -2px 0 10px; color: #8794aa; font-size: 10px; }
+        .architecture-key span { display: inline-flex; align-items: center; gap: 7px; }
+        .key-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px #42d6a455; }
+        .key-dot.optional { border: 1px dashed #94a0b4; background: transparent; box-shadow: none; }
+        .flow-overview {
+            padding: 17px 19px 19px;
+            margin-bottom: 34px;
+            border: 1px solid #353656;
+            border-radius: 15px;
+            background:
+                radial-gradient(ellipse at 48% 0, #7668c61c, transparent 56%),
+                linear-gradient(145deg, #151b2e, #111727);
+            box-shadow: inset 0 1px #ffffff08, 0 18px 50px #0002;
+        }
+        .flow-overview-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+        .flow-overview-head strong { font-size: 13px; }
+        .flow-overview-head span { color: var(--faint); font-size: 10px; }
+        .flow-line { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; gap: 0; }
+        .flow-step { position: relative; display: flex; min-height: 55px; align-items: center; gap: 10px; padding: 9px 14px; border: 1px solid #303a51; border-radius: 10px; background: #111827b8; }
+        .flow-step:not(:last-child) { margin-right: 24px; }
+        .flow-step:not(:last-child)::after { position: absolute; top: 50%; right: -20px; width: 15px; height: 1px; background: #786bd0; box-shadow: 0 0 8px #786bd055; content: ""; }
+        .flow-step:not(:last-child)::before { position: absolute; z-index: 1; top: calc(50% - 3px); right: -20px; width: 6px; height: 6px; border-top: 1px solid #a99aff; border-right: 1px solid #a99aff; content: ""; transform: rotate(45deg); }
+        .flow-step-icon { display: grid; width: 28px; height: 28px; flex: 0 0 auto; place-items: center; border: 1px solid #ffffff0b; border-radius: 8px; background: #ffffff09; font-size: 15px; }
+        .flow-step strong, .flow-step small { display: block; }
+        .flow-step strong { font-size: 11px; }
+        .flow-step small { margin-top: 3px; color: #8a97ad; font-size: 10px; }
+        .flow-caption { margin: 12px 0 0; color: #8290a7; font-size: 11px; line-height: 1.55; }
+        .layers { position: relative; }
+        .layer {
+            position: relative;
+            display: grid;
+            grid-template-columns: 205px minmax(0, 1fr);
+            gap: 22px;
+            padding: 21px 0 24px;
+            border-top: 1px solid #202a3e;
+        }
+        .layer:first-child { border-top: 0; }
+        .layer-info { position: relative; padding-left: 43px; }
+        .layer-index {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: grid;
+            width: 31px;
+            height: 31px;
+            place-items: center;
+            color: #c4bbff;
+            border: 1px solid #8272eb54;
+            border-radius: 10px;
+            background: #7967e51a;
+            font: 700 10px ui-monospace, SFMono-Regular, Consolas, monospace;
+        }
+        .layer-info h2 { margin: 2px 0 6px; font-size: 15px; letter-spacing: -.3px; }
+        .layer-info p { margin: 0; color: #8290a7; font-size: 11px; line-height: 1.6; }
+        .service-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .service-card {
+            display: flex;
+            min-width: 0;
+            min-height: 136px;
+            flex-direction: column;
+            padding: 13px;
+            border: 1px solid #273249;
+            border-radius: 11px;
+            background: linear-gradient(145deg, #151e30, #111827 78%);
+            box-shadow: inset 0 1px #ffffff06;
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+        }
+        .service-card:hover { transform: translateY(-2px); border-color: #5b548f; box-shadow: 0 12px 28px #03071245; }
+        .service-card.optional { border-style: dashed; border-color: #3a4358; }
+        .service-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .service-identity { display: flex; min-width: 0; align-items: center; gap: 9px; }
+        .service-icon { display: grid; width: 31px; height: 31px; flex: 0 0 auto; place-items: center; border: 1px solid #ffffff0b; border-radius: 9px; background: #ffffff08; font-size: 16px; }
+        .service-title { overflow: hidden; margin: 0; color: #e4e9f3; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+        .service-id { overflow: hidden; margin: 3px 0 0; color: #738099; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+        .service-kind { flex: 0 0 auto; padding: 4px 6px; color: #a3afc2; border: 1px solid #344057; border-radius: 99px; background: #ffffff05; font-size: 9px; font-weight: 700; letter-spacing: .2px; }
+        .service-kind.base { color: #94e9cd; border-color: #42d6a42d; background: #42d6a40c; }
+        .service-card > p { display: -webkit-box; overflow: hidden; margin: 10px 0 8px; color: #909bb0; font-size: 10px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+        .service-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 8px; border-top: 1px solid #263149; }
+        .service-port { color: #7e8ba1; font-size: 8px; }
+        .service-port b { color: #aeb9cb; font: 500 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .service-open { color: #b9adff; font-size: 9px; font-weight: 650; }
+        .service-open:hover { color: #e1dcff; }
+        .internal-badge { color: #91bdf1; font-size: 8px; font-weight: 650; }
+        .updater-card { border-color: #554b78; background: linear-gradient(145deg, #211f39, #141a2a); }
+        .journeys { padding: 25px 0 8px; }
+        .journey-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .journey {
+            border: 1px solid #28334a;
+            border-radius: 11px;
+            background: #111827c9;
+            transition: border-color .18s ease, background .18s ease;
+        }
+        .journey[open] { border-color: #524b7b; background: #141a2b; }
+        .journey summary { display: flex; min-height: 52px; align-items: center; gap: 10px; padding: 11px 13px; cursor: pointer; list-style: none; }
+        .journey summary::-webkit-details-marker { display: none; }
+        .journey-icon { display: grid; width: 29px; height: 29px; flex: 0 0 auto; place-items: center; border-radius: 8px; background: #ffffff09; font-size: 14px; }
+        .journey summary strong { flex: 1; font-size: 11px; }
+        .journey summary::after { color: #9c91e2; font-size: 14px; content: "+"; }
+        .journey[open] summary::after { content: "−"; }
+        .journey-body { padding: 0 13px 13px 52px; }
+        .journey-path { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 0 0 7px; color: #c5bbff; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .journey-path span { color: #65728a; }
+        .journey-body p { margin: 0; color: #8794aa; font-size: 10px; line-height: 1.6; }
+        .infra-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 27px 0 35px; }
+        .infra-note { min-height: 105px; padding: 14px; border: 1px solid #263149; border-radius: 11px; background: #111827b8; }
+        .infra-note strong { display: flex; align-items: center; gap: 8px; color: #d9dfeb; font-size: 11px; }
+        .infra-note strong span { color: var(--purple); font-size: 14px; }
+        .infra-note p { margin: 7px 0 0; color: #8995aa; font-size: 10px; line-height: 1.65; }
+        .page-footer { display: flex; justify-content: space-between; gap: 12px; padding: 16px 0 22px; color: #69768c; border-top: 1px solid #202a3e; font-size: 10px; }
+        @media (max-width: 980px) {
+            .layer { grid-template-columns: 160px minmax(0, 1fr); gap: 14px; }
+            .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .hero { grid-template-columns: minmax(0, 1fr) 255px; gap: 20px; }
+        }
+        @media (max-width: 680px) {
+            .topbar { min-height: 58px; padding: 0 14px; }
+            .brand small { display: none; }
+            .top-link { min-height: 32px; padding: 0 9px; font-size: 10px; }
+            .page-shell { width: min(100% - 28px, 560px); }
+            .hero { grid-template-columns: 1fr; gap: 18px; padding: 37px 0 22px; }
+            .hero::before { left: -10px; }
+            .hero-side { grid-template-columns: 1fr 1fr; }
+            .flow-overview { padding: 14px; margin-bottom: 24px; }
+            .flow-line { grid-template-columns: 1fr; gap: 7px; }
+            .flow-step { min-height: 47px; }
+            .flow-step:not(:last-child) { margin: 0; }
+            .flow-step:not(:last-child)::after { top: auto; right: auto; bottom: -8px; left: 23px; width: 1px; height: 9px; }
+            .flow-step:not(:last-child)::before { top: auto; right: auto; bottom: -8px; left: 21px; transform: rotate(135deg); }
+            .flow-overview-head { align-items: flex-start; flex-direction: column; gap: 5px; }
+            .layer { grid-template-columns: 1fr; gap: 12px; padding: 18px 0; }
+            .layer-info { min-height: 33px; }
+            .layer-info p { max-width: 480px; }
+            .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .service-card { min-height: 145px; padding: 10px; }
+            .journey-grid { grid-template-columns: 1fr; }
+            .infra-notes { grid-template-columns: 1fr; padding-top: 20px; }
+            .infra-note { min-height: auto; }
+        }
+        @media (max-width: 390px) {
+            .top-actions { gap: 5px; }
+            .top-link { padding: 0 7px; font-size: 9px; }
+            .service-grid { grid-template-columns: 1fr; }
+            .service-card { min-height: 130px; }
+            .page-footer { flex-direction: column; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
         }
     </style>
 </head>
 <body>
-
-    <!-- Header Overlay -->
-    <div class="diagram-header">
-        <div class="diagram-title-card">
-            <h1>Laboratório IA</h1>
-            <p>Arquitetura de inteligência artificial</p>
-        </div>
-        <nav class="diagram-actions" aria-label="Ações">
-            <a href="https://github.com/georgeslucas50" class="diagram-link diagram-link--github" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-            <a href="https://www.linkedin.com/in/georges-lucas-0928123b3/" class="diagram-link diagram-link--github" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-            <a href="/dashboard" class="diagram-link"><span aria-hidden="true">←</span> Voltar ao painel</a>
+    {% set optional_ids = ['n8n', 'flowise', 'jupyter', 'portainer', 'tika', 'whisper-stt', 'openedai-tts', 'qdrant', 'neo4j', 'browserless'] %}
+    {% macro service_card(s) -%}
+        {% set optional = s.id in optional_ids %}
+        <article class="service-card{% if optional %} optional{% endif %}">
+            <div class="service-top">
+                <div class="service-identity">
+                    <span class="service-icon" aria-hidden="true">{{ s.icon }}</span>
+                    <div style="min-width:0">
+                        <h3 class="service-title">{{ s.name }}</h3>
+                        <p class="service-id">{{ s.id }}</p>
+                    </div>
+                </div>
+                <span class="service-kind{% if not optional %} base{% endif %}">{{ 'Perfil Compose' if optional else 'Sem perfil' }}</span>
+            </div>
+            <p>{{ s.description }}</p>
+            <div class="service-meta">
+                <span class="service-port">Porta local <b>{{ s.port }}</b></span>
+                {% if s.has_ui %}
+                    <a class="service-open" href="{{ s.url }}" target="_blank" rel="noopener noreferrer" aria-label="Abrir {{ s.name }}">Abrir ↗</a>
+                {% else %}
+                    <span class="internal-badge">API / interno</span>
+                {% endif %}
+            </div>
+        </article>
+    {%- endmacro %}
+    {% set service_groups = [
+        {'number': '01', 'title': 'Acesso e criação', 'description': 'As telas que o aluno usa para conversar, programar e montar automações.', 'ids': ['open-webui', 'jupyter', 'n8n', 'flowise']},
+        {'number': '02', 'title': 'Gateway e observabilidade', 'description': 'Roteamento compatível com OpenAI e inspeção das chamadas e traces.', 'ids': ['litellm', 'phoenix']},
+        {'number': '03', 'title': 'Modelos e ferramentas', 'description': 'Inferência local, voz, extração de conteúdo e ferramentas para agentes.', 'ids': ['ollama', 'python-mcp', 'tika', 'browserless', 'whisper-stt', 'openedai-tts']},
+        {'number': '04', 'title': 'Dados e memória', 'description': 'Persistência relacional, cache, busca semântica e relações em grafo.', 'ids': ['postgres', 'redis', 'qdrant', 'neo4j']},
+        {'number': '05', 'title': 'Operação do laboratório', 'description': 'Gerencie os containers, consulte a infraestrutura e aplique atualizações do projeto.', 'ids': ['dashboard', 'portainer']}
+    ] %}
+    <header class="topbar">
+        <a class="brand" href="/dashboard">
+            <span class="brand-mark" aria-hidden="true">⌘</span>
+            <span><strong>Laboratório de IA</strong><small>Arquitetura da plataforma</small></span>
+        </a>
+        <nav class="top-actions" aria-label="Navegação">
+            <a class="top-link" href="/dashboard">← Dashboard</a>
+            <a class="top-link" href="/documentacao">Documentação</a>
+            <a class="top-link primary" href="/configuracoes">Configurações</a>
         </nav>
-    </div>
+    </header>
+    <main class="page-shell">
+        <section class="hero">
+            <div>
+                <p class="eyebrow">Visão geral · infraestrutura local</p>
+                <h1>Como o laboratório<br>se conecta.</h1>
+                <p class="hero-copy">Um mapa para entender o percurso entre as ferramentas do aluno, os modelos de IA e os dados. Cada aluno executa sua própria instância no computador.</p>
+            </div>
+            <aside class="hero-side" aria-label="Resumo da arquitetura">
+                <div class="metric"><strong>19</strong><span>serviços definidos no Compose</span></div>
+                <div class="metric"><strong>10</strong><span>serviços associados a perfis</span></div>
+                <div class="access-note"><span class="access-dot" aria-hidden="true"></span><span>Acesso pelo próprio computador: <b>localhost</b></span></div>
+            </aside>
+        </section>
 
-    <!-- Container do Grafo -->
-    <div id="mynetwork"></div>
+        <section class="flow-overview" aria-labelledby="flow-title">
+            <div class="flow-overview-head">
+                <strong id="flow-title">O caminho mais comum de uma pergunta</strong>
+                <span>Os notebooks também podem chamar APIs e bancos diretamente durante os exercícios.</span>
+            </div>
+            <div class="flow-line">
+                <div class="flow-step"><span class="flow-step-icon" aria-hidden="true">👩‍🎓</span><span><strong>Aluno</strong><small>navegador local</small></span></div>
+                <div class="flow-step"><span class="flow-step-icon" aria-hidden="true">💬</span><span><strong>Interface</strong><small>Open WebUI / agentes</small></span></div>
+                <div class="flow-step"><span class="flow-step-icon" aria-hidden="true">🚦</span><span><strong>LiteLLM</strong><small>gateway de modelos</small></span></div>
+                <div class="flow-step"><span class="flow-step-icon" aria-hidden="true">🧠</span><span><strong>Ollama</strong><small>inferência local</small></span></div>
+            </div>
+            <p class="flow-caption">No fluxo de chat padrão, o LiteLLM oferece uma API unificada e encaminha a solicitação ao modelo configurado no Ollama. Agentes e notebooks podem acessar ferramentas e dados conforme a atividade.</p>
+        </section>
 
-    <script type="text/javascript">
-        // Criação dos Nós (Nodes) a partir do backend
-        var nodes = new vis.DataSet([
-            { 
-                id: 'aluno', 
-                label: '👨‍💻\nAluno', 
-                shape: 'circle',
-                color: { background: '#3b82f6', border: '#2563eb' },
-                font: { color: 'white', size: 16, face: 'Inter' },
-                title: 'O usuário interagindo com a plataforma'
-            },
-            {% for s in services %}
-            { 
-                id: '{{ s.id }}', 
-                label: '{{ s.icon }}\n{{ s.name }}', 
-                shape: 'box',
-                color: { 
-                    background: '#1e293b', 
-                    border: '#334155',
-                    highlight: { background: '#334155', border: '#475569' },
-                    hover: { background: '#334155', border: '#475569' }
-                },
-                font: { color: '#e2e8f0', size: 14, face: 'Inter', multi: 'html' },
-                title: '{{ s.name }}\n\n{{ s.description }}',
-                margin: 10,
-                borderWidth: 2,
-                shadow: true,
-                level: {% if s.category == 'Telas & Interfaces de Usuário' or s.category == 'Notebooks & Desenvolvimento' %}2{% elif s.category == 'AI Gateway & Observabilidade' %}3{% elif s.category == 'Cérebro de IA & Voz' %}4{% else %}5{% endif %}
-            },
+        <section class="layers" aria-labelledby="layers-title">
+            <h2 class="section-label" id="layers-title">Camadas da infraestrutura</h2>
+            <div class="architecture-key" aria-label="Legenda dos serviços">
+                <span><i class="key-dot" aria-hidden="true"></i>Sem perfil: inicia sem seleção adicional</span>
+                <span><i class="key-dot optional" aria-hidden="true"></i>Perfil Compose: instaladores ativam <code>full</code> e <code>management</code>; no modo manual, use <code>docker compose --profile full --profile management up -d</code></span>
+            </div>
+            {% for group in service_groups %}
+                <section class="layer" aria-labelledby="layer-{{ group.number }}">
+                    <div class="layer-info">
+                        <span class="layer-index" aria-hidden="true">{{ group.number }}</span>
+                        <h2 id="layer-{{ group.number }}">{{ group.title }}</h2>
+                        <p>{{ group.description }}</p>
+                    </div>
+                    <div class="service-grid">
+                        {% for service_id in group.ids %}
+                            {% set service = services|selectattr('id', 'equalto', service_id)|first %}
+                            {% if service %}{{ service_card(service) }}{% endif %}
+                            {% if service_id == 'dashboard' %}
+                                <article class="service-card updater-card">
+                                    <div class="service-top">
+                                        <div class="service-identity"><span class="service-icon" aria-hidden="true">↻</span><div><h3 class="service-title">Atualizador do sistema</h3><p class="service-id">system-updater</p></div></div>
+                                        <span class="service-kind base">Interno</span>
+                                    </div>
+                                    <p>Consulta as versões no GitHub e aplica atualizações do projeto pelo dashboard.</p>
+                                    <div class="service-meta"><span class="service-port">Comunicação interna</span><span class="internal-badge">sem porta publicada</span></div>
+                                </article>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
             {% endfor %}
-        ]);
+        </section>
 
-        // Atualização do nó do aluno com nível hierárquico 1
-        nodes.update({id: 'aluno', level: 1});
+        <section class="journeys" aria-labelledby="journeys-title">
+            <h2 class="section-label" id="journeys-title">Exemplos de fluxos de estudo</h2>
+            <div class="journey-grid">
+                <details class="journey">
+                    <summary><span class="journey-icon" aria-hidden="true">📓</span><strong>Explorar um modelo no notebook</strong></summary>
+                    <div class="journey-body"><div class="journey-path">JupyterLab <span>→</span> LiteLLM <span>→</span> Ollama</div><p>O aluno escreve Python no JupyterLab e usa a API OpenAI compatível do gateway, ou acessa o Ollama diretamente para experimentar seus endpoints.</p></div>
+                </details>
+                <details class="journey">
+                    <summary><span class="journey-icon" aria-hidden="true">📚</span><strong>Montar uma busca RAG</strong></summary>
+                    <div class="journey-body"><div class="journey-path">Arquivo <span>→</span> Tika <span>→</span> embeddings <span>→</span> Qdrant</div><p>Um fluxo configurado extrai o texto, gera embeddings com o modelo escolhido, indexa os vetores e recupera trechos para compor o contexto enviado ao LLM. Tika e Qdrant são opcionais.</p></div>
+                </details>
+                <details class="journey">
+                    <summary><span class="journey-icon" aria-hidden="true">⚡</span><strong>Automatizar uma tarefa com agente</strong></summary>
+                    <div class="journey-body"><div class="journey-path">n8n / Flowise <span>→</span> LiteLLM <span>→</span> MCP / dados</div><p>O orquestrador encadeia etapas, chama o modelo e, quando o fluxo está configurado, usa ferramentas expostas pelo servidor MCP ou por bancos do laboratório.</p></div>
+                </details>
+                <details class="journey">
+                    <summary><span class="journey-icon" aria-hidden="true">🎙️</span><strong>Experimentar entrada e saída por voz</strong></summary>
+                    <div class="journey-body"><div class="journey-path">Áudio <span>→</span> Whisper <span>→</span> LLM <span>→</span> OpenEDAI Speech</div><p>O serviço de transcrição converte fala em texto e o serviço TTS transforma a resposta em áudio. Ambos são opcionais e usam CPU na configuração padrão.</p></div>
+                </details>
+            </div>
+        </section>
 
-        // Definição das Arestas (Edges/Conexões)
-        var edges = new vis.DataSet([
-            // Aluno -> Interfaces UI
-            { from: 'aluno', to: 'open-webui', color: { color: '#64748b' }, arrows: 'to' },
-            { from: 'aluno', to: 'n8n', color: { color: '#64748b' }, arrows: 'to' },
-            { from: 'aluno', to: 'flowise', color: { color: '#64748b' }, arrows: 'to' },
-            { from: 'aluno', to: 'portainer', color: { color: '#64748b' }, arrows: 'to' },
-            { from: 'aluno', to: 'jupyter', color: { color: '#64748b' }, arrows: 'to' },
-            
-            // Interfaces UI -> API Gateway (LiteLLM)
-            { from: 'open-webui', to: 'litellm', color: { color: '#10b981' }, arrows: 'to', label: 'API Call', font: {size: 10, color: '#94a3b8', align: 'horizontal'} },
-            { from: 'n8n', to: 'litellm', color: { color: '#10b981' }, arrows: 'to' },
-            { from: 'flowise', to: 'litellm', color: { color: '#10b981' }, arrows: 'to' },
-
-            // JupyterLab -> APIs e dados do laboratório
-            { from: 'jupyter', to: 'litellm', color: { color: '#10b981' }, arrows: 'to', label: 'OpenAI API', font: {size: 10, color: '#94a3b8'} },
-            { from: 'jupyter', to: 'ollama', color: { color: '#8b5cf6' }, arrows: 'to' },
-            { from: 'jupyter', to: 'python-mcp', color: { color: '#0ea5e9' }, arrows: 'to', label: 'MCP / Tools', font: {size: 10, color: '#94a3b8'} },
-            { from: 'jupyter', to: 'qdrant', color: { color: '#ec4899' }, arrows: 'to' },
-            { from: 'jupyter', to: 'neo4j', color: { color: '#ec4899' }, arrows: 'to' },
-            { from: 'jupyter', to: 'postgres', color: { color: '#334155' }, arrows: 'to' },
-            { from: 'jupyter', to: 'redis', color: { color: '#ef4444' }, arrows: 'to' },
-            
-            // LiteLLM Gateway -> Motores & Observabilidade
-            { from: 'litellm', to: 'ollama', color: { color: '#8b5cf6' }, arrows: 'to', label: 'LLM Inference', font: {size: 10, color: '#94a3b8'} },
-            { from: 'litellm', to: 'redis', color: { color: '#ef4444' }, arrows: 'to, from', label: 'Cache', font: {size: 10, color: '#94a3b8'} },
-            { from: 'litellm', to: 'phoenix', color: { color: '#f59e0b' }, arrows: 'to', label: 'Traces', font: {size: 10, color: '#94a3b8'}, dashes: true },
-            
-            // Open WebUI -> Serviços de Voz
-            { from: 'open-webui', to: 'whisper-stt', color: { color: '#3b82f6' }, arrows: 'to', dashes: true },
-            { from: 'open-webui', to: 'openedai-tts', color: { color: '#3b82f6' }, arrows: 'to', dashes: true },
-            
-            // N8N & Flowise -> Integrações (Bancos e MCP)
-            { from: 'n8n', to: 'qdrant', color: { color: '#ec4899' }, arrows: 'to, from' },
-            { from: 'n8n', to: 'neo4j', color: { color: '#ec4899' }, arrows: 'to, from' },
-            { from: 'n8n', to: 'python-mcp', color: { color: '#0ea5e9' }, arrows: 'to, from', label: 'Tools', font: {size: 10, color: '#94a3b8'} },
-            
-            { from: 'flowise', to: 'qdrant', color: { color: '#ec4899' }, arrows: 'to, from' },
-            { from: 'flowise', to: 'neo4j', color: { color: '#ec4899' }, arrows: 'to, from' },
-            { from: 'flowise', to: 'python-mcp', color: { color: '#0ea5e9' }, arrows: 'to, from' },
-            
-            // Python MCP -> Microsserviços
-            { from: 'python-mcp', to: 'tika', color: { color: '#6366f1' }, arrows: 'to' },
-            { from: 'python-mcp', to: 'browserless', color: { color: '#6366f1' }, arrows: 'to' },
-            
-            // Banco Central PostgreSQL (Conectado a todos os stateful)
-            { from: 'postgres', to: 'open-webui', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
-            { from: 'postgres', to: 'n8n', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
-            { from: 'postgres', to: 'flowise', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
-            { from: 'postgres', to: 'litellm', color: { color: '#334155' }, arrows: 'to, from', dashes: true },
-            { from: 'postgres', to: 'phoenix', color: { color: '#334155' }, arrows: 'to, from', dashes: true }
-        ]);
-
-        var container = document.getElementById('mynetwork');
-        var data = {
-            nodes: nodes,
-            edges: edges
-        };
-        
-        var options = {
-            layout: {
-                hierarchical: {
-                    direction: 'UD', // Up-Down (De cima para baixo)
-                    sortMethod: 'directed',
-                    nodeSpacing: 250,
-                    levelSeparation: 150,
-                    treeSpacing: 200
-                }
-            },
-            physics: {
-                enabled: false // Desabilita a física para manter o organograma estático e legível
-            },
-            interaction: {
-                hover: true,
-                tooltipDelay: 100,
-                zoomView: true,
-                dragView: true,
-                navigationButtons: true
-            }
-        };
-
-        var network = new vis.Network(container, data, options);
-    </script>
+        <section class="infra-notes" aria-label="Conceitos importantes">
+            <article class="infra-note"><strong><span aria-hidden="true">⌁</span> Rede interna</strong><p>Os containers se encontram pela rede Docker <code>ai_network</code>, usando o nome do serviço como endereço, por exemplo <code>http://ollama:11434</code>.</p></article>
+            <article class="infra-note"><strong><span aria-hidden="true">⌂</span> Acesso local</strong><p>As portas publicadas no host estão vinculadas a <code>127.0.0.1</code>. Em geral, o aluno abre as ferramentas no próprio navegador em endereços <code>localhost</code>.</p></article>
+            <article class="infra-note"><strong><span aria-hidden="true">▤</span> Dados persistentes</strong><p>Volumes nomeados guardam modelos, bancos e arquivos de trabalho fora do ciclo de vida do container. Recriar um container, por si só, não apaga esses dados.</p></article>
+        </section>
+        <footer class="page-footer"><span>Arquitetura definida em docker-compose.yml e docker-compose.gpu.yml</span><span>Laboratório de IA · execução local por aluno</span></footer>
+    </main>
 </body>
 </html>

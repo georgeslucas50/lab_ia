@@ -382,6 +382,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./apps/dashboard:/app:ro
       - system_update_state:/var/lib/lab-update:ro
+      - dashboard_settings:/var/lib/lab-settings
 
   # ---------------------------------------------------------------------------
   # 19. JupyterLab com bibliotecas de IA e acesso aos serviços internos
@@ -431,6 +432,8 @@ services:
 volumes:
   system_update_state:
     name: system_update_state
+  dashboard_settings:
+    name: dashboard_settings
   ollama_storage:
     name: ollama_storage
   open-webui_storage:

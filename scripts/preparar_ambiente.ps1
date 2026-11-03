@@ -402,19 +402,51 @@ if ($gpuAvailable -and -not $gpuInWsl) {
     $gpuAvailable = $false
 }
 
+$gpuInDocker = $false
+if ($gpuAvailable -and $gpuInWsl) {
+    Write-Step 'Validando o acesso NVIDIA dentro do Docker'
+    & wsl.exe -d $Distro -u root -- docker run --rm --runtime=nvidia --gpus all ubuntu:24.04 nvidia-smi *> $null
+    if ($LASTEXITCODE -eq 0) {
+        $gpuInDocker = $true
+        Write-Host 'GPU NVIDIA disponível para os containers.' -ForegroundColor Green
+    } else {
+        Write-Warning 'O driver aparece no WSL, mas o Docker não conseguiu usar a GPU. O laboratório seguirá em modo CPU.'
+        $gpuAvailable = $false
+    }
+}
+
 Write-Step 'Validando e iniciando os serviços do laboratório'
 $composeArgs = @('--distribution', $Distro, '--user', 'root', '--cd', $linuxProject, '--', 'docker', 'compose')
-if ($gpuInWsl) {
+if ($gpuInDocker) {
     Invoke-Wsl ($composeArgs + @('-f', 'docker-compose.yml', '-f', 'docker-compose.gpu.yml', '--profile', 'full', '--profile', 'management', 'config', '--quiet'))
+    Invoke-Wsl ($composeArgs + @('-f', 'docker-compose.yml', '-f', 'docker-compose.gpu.yml', '--profile', 'full', '--profile', 'management', 'build', '--pull'))
     Invoke-Wsl ($composeArgs + @('-f', 'docker-compose.yml', '-f', 'docker-compose.gpu.yml', '--profile', 'full', '--profile', 'management', 'up', '-d', '--build'))
 } else {
     Invoke-Wsl ($composeArgs + @('--profile', 'full', '--profile', 'management', 'config', '--quiet'))
+    Invoke-Wsl ($composeArgs + @('--profile', 'full', '--profile', 'management', 'build', '--pull'))
     Invoke-Wsl ($composeArgs + @('--profile', 'full', '--profile', 'management', 'up', '-d', '--build'))
+}
+
+Write-Step 'Aguardando o Ollama antes de baixar os modelos iniciais'
+$ollamaReady = $false
+for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    try {
+        $response = Invoke-WebRequest -Uri 'http://localhost:11434/api/tags' -UseBasicParsing -TimeoutSec 3
+        if ($response.StatusCode -eq 200) { $ollamaReady = $true; break }
+    } catch { }
+    Start-Sleep -Seconds 3
+}
+if (-not $ollamaReady) {
+    throw 'O Ollama não respondeu após a inicialização. Consulte os logs com docker compose --profile full --profile management logs ollama no Ubuntu.'
 }
 
 Write-Step 'Baixando os modelos base para chat e embeddings'
 Invoke-Wsl ($composeArgs + @('exec', '-T', 'ollama', 'ollama', 'pull', 'llama3.2:3b'))
 Invoke-Wsl ($composeArgs + @('exec', '-T', 'ollama', 'ollama', 'pull', 'nomic-embed-text'))
+
+Write-Step 'Conferindo o estado de todos os containers e healthchecks'
+$readinessScript = ConvertTo-WslPath (Join-Path $PSScriptRoot 'aguardar_servicos.sh')
+Invoke-Wsl @('-d', $Distro, '-u', 'root', '--', 'bash', $readinessScript, $linuxProject)
 
 Write-Step 'Aguardando o dashboard ficar disponível'
 $dashboardReady = $false
@@ -426,7 +458,7 @@ for ($attempt = 0; $attempt -lt 40; $attempt++) {
     Start-Sleep -Seconds 3
 }
 if (-not $dashboardReady) {
-    throw 'Os containers foram iniciados, mas o dashboard não respondeu em http://localhost:9090. Consulte os logs com docker compose logs no Ubuntu.'
+    throw 'Os containers foram iniciados, mas o dashboard não respondeu em http://localhost:9090. Consulte os logs com docker compose --profile full --profile management logs dashboard no Ubuntu.'
 }
 
 Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
@@ -435,7 +467,7 @@ Write-Host "`nLaboratório iniciado. Dashboard: http://localhost:9090/dashboard"
 Write-Host 'Chat: http://localhost:3000 | n8n: http://localhost:5678 | LiteLLM: http://localhost:4000'
 Write-Host 'JupyterLab: execute .\scripts\abrir_jupyter.ps1 para abrir com autenticação.'
 Write-Host 'Portainer: http://localhost:9001'
-if ($gpuInWsl) { Write-Host 'Ollama configurado para NVIDIA GPU.' } else { Write-Host 'Ollama configurado em modo CPU.' }
+if ($gpuInDocker) { Write-Host 'Ollama configurado para NVIDIA GPU.' } else { Write-Host 'Ollama configurado em modo CPU.' }
 Start-Process 'http://localhost:9090/dashboard'
 $jupyterHelper = Join-Path $PSScriptRoot 'abrir_jupyter.ps1'
 Start-Process -FilePath 'powershell.exe' -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$jupyterHelper`"" -WindowStyle Hidden

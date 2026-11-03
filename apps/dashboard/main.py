@@ -260,6 +260,7 @@ CONTROLLED_SERVICE_IDS = {service["id"] for service in SERVICES_DATA if service[
 LOCAL_ORIGINS = {"http://localhost:9090", "http://127.0.0.1:9090"}
 LOCAL_HOSTS = {"localhost:9090", "127.0.0.1:9090"}
 UPDATE_STATE_FILE = Path("/var/lib/lab-update/update-state.json")
+CLASSROOM_SETTINGS_FILE = Path("/var/lib/lab-settings/classroom.json")
 UPDATE_CONFIRMATION = "ATUALIZAR LABORATÓRIO"
 
 # Somente estes volumes nomeados e bancos de dados podem ser apagados pelo
@@ -341,6 +342,45 @@ class ResetRequest(BaseModel):
 
 class UpdateRequest(BaseModel):
     confirmation: str
+
+
+class ClassroomDestinationRequest(BaseModel):
+    destination: str
+
+
+def normalize_classroom_destination(destination: str) -> str:
+    destination = destination.strip()
+    if not destination:
+        return ""
+    if len(destination) > 2048 or any(character.isspace() for character in destination):
+        raise HTTPException(status_code=422, detail="Informe uma URL válida, sem espaços e com até 2048 caracteres.")
+    try:
+        parsed = urlsplit(destination)
+        # Accessing .port also validates malformed port values.
+        _ = parsed.port
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="A URL informada é inválida.") from exc
+    if (
+        parsed.scheme.lower() not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise HTTPException(status_code=422, detail="Use uma URL HTTP ou HTTPS válida, sem usuário ou senha embutidos.")
+    return destination
+
+
+def read_classroom_destination() -> str:
+    try:
+        payload = json.loads(CLASSROOM_SETTINGS_FILE.read_text(encoding="utf-8"))
+        destination = payload.get("destination", "")
+        if not isinstance(destination, str):
+            return ""
+        return normalize_classroom_destination(destination)
+    except (OSError, json.JSONDecodeError, HTTPException):
+        # Preserve dashboard availability if the optional preference is missing
+        # or its persisted file was manually damaged.
+        return ""
 
 
 def get_docker_scope():
@@ -879,7 +919,11 @@ def _run_reset_job(job_id, project, scope, service_id=None):
 
 @app.get("/", response_class=HTMLResponse)
 async def welcome_home(request: Request):
-    return templates.TemplateResponse(request=request, name="welcome.html", context={})
+    return templates.TemplateResponse(
+        request=request,
+        name="welcome.html",
+        context={"classroom_url": read_classroom_destination()},
+    )
 
 @app.get("/instrucoes/n8n", response_class=HTMLResponse)
 async def instrucao_n8n(request: Request):
@@ -943,8 +987,28 @@ async def dashboard_settings(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="configuracoes.html",
-        context={"reset_services": reset_services},
+        context={
+            "reset_services": reset_services,
+            "classroom_url": read_classroom_destination(),
+        },
     )
+
+
+@app.post("/api/settings/classroom")
+def save_classroom_destination(body: ClassroomDestinationRequest, request: Request):
+    validate_local_control_request(request)
+    destination = normalize_classroom_destination(body.destination)
+    try:
+        CLASSROOM_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        temporary_file = CLASSROOM_SETTINGS_FILE.with_suffix(".tmp")
+        temporary_file.write_text(
+            json.dumps({"destination": destination}, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        temporary_file.replace(CLASSROOM_SETTINGS_FILE)
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail="Não foi possível salvar o destino da Sala de Aula.") from exc
+    return {"destination": destination, "configured": bool(destination)}
 
 
 @app.get("/documentacao", response_class=HTMLResponse)

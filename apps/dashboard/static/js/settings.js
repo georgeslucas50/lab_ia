@@ -16,6 +16,7 @@
   const updateDialog = document.getElementById('update-dialog');
   const updateInput = document.getElementById('update-confirm-input');
   const updateConfirmButton = document.getElementById('update-confirm-button');
+  const classroomForm = document.getElementById('classroom-settings-form');
   let pendingReset = null;
   let activeJobId = null;
   let activeUpdateJobId = null;
@@ -32,6 +33,49 @@
     const toast = make('div', `toast${isError ? ' error' : ''}`, message);
     document.getElementById('toast-region').append(toast);
     window.setTimeout(() => toast.remove(), 5000);
+  }
+
+  if (classroomForm) {
+    const classroomInput = document.getElementById('classroom-destination');
+    const classroomSaveButton = document.getElementById('classroom-save-button');
+    const classroomStatus = document.getElementById('classroom-settings-status');
+
+    classroomForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!classroomForm.reportValidity()) return;
+
+      const destination = classroomInput.value.trim();
+      classroomSaveButton.disabled = true;
+      classroomInput.disabled = true;
+      classroomSaveButton.textContent = 'Salvando…';
+      classroomStatus.textContent = 'Salvando configuração local…';
+      classroomStatus.dataset.state = 'loading';
+
+      try {
+        const response = await fetch('/api/settings/classroom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ destination }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || 'Não foi possível salvar o endereço.');
+
+        classroomInput.value = payload.destination;
+        classroomStatus.textContent = payload.configured
+          ? 'Destino salvo. O botão Sala de Aula já está habilitado na página inicial.'
+          : 'Destino removido. A página inicial exibirá Sala de Aula como “Em Construção”.';
+        classroomStatus.dataset.state = 'success';
+        showToast('Configuração da Sala de Aula salva.');
+      } catch (error) {
+        classroomStatus.textContent = error.message || 'Não foi possível salvar. Verifique o endereço e tente novamente.';
+        classroomStatus.dataset.state = 'error';
+        showToast(classroomStatus.textContent, true);
+      } finally {
+        classroomSaveButton.disabled = false;
+        classroomInput.disabled = false;
+        classroomSaveButton.textContent = 'Salvar destino';
+      }
+    });
   }
 
   function showUpdateStatus(message, state = 'idle') {

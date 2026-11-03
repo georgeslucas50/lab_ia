@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0b1020">
     <meta name="description" content="Laboratório pessoal de inteligência artificial desenvolvido por Georges Lucas Silva Queiroz de Albuquerque.">
     <title>Laboratório IA | Inteligência Artificial</title>
-    <link rel="stylesheet" href="/static/css/welcome.css?v=20261020-layout">
+    <link rel="stylesheet" href="/static/css/welcome.css?v=20261021-classroom">
 </head>
 <body>
     <div class="ambient ambient--violet" aria-hidden="true"></div>
@@ -46,6 +46,40 @@
                     <span class="card-action">Explorar ferramentas <span aria-hidden="true">↗</span></span>
                     <span class="card-orbit" aria-hidden="true"></span>
                 </a>
+
+                {% if classroom_url %}
+                <a class="destination-card destination-card--classroom" href="{{ classroom_url }}" target="_blank" rel="noopener noreferrer">
+                    <div class="card-topline">
+                        <span class="card-icon card-icon--classroom" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M3 20.5h18M5 20V8.5h14V20M8 8V4.5h8V8M8.5 12h2M13.5 12h2M8.5 16h2M13.5 16h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 4.5V3h4v1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        </span>
+                        <span class="card-index">AULA / 02</span>
+                    </div>
+                    <div class="card-copy">
+                        <p class="card-kicker">CONTEÚDO DO CURSO</p>
+                        <h2>Sala de Aula</h2>
+                        <p>Acesse o ambiente de aulas configurado para a turma.</p>
+                    </div>
+                    <span class="card-action">Acessar sala de aula <span aria-hidden="true">↗</span></span>
+                    <span class="card-orbit" aria-hidden="true"></span>
+                </a>
+                {% else %}
+                <article class="destination-card destination-card--classroom is-unavailable" aria-labelledby="classroom-title" aria-describedby="classroom-description">
+                    <div class="card-topline">
+                        <span class="card-icon card-icon--classroom" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M3 20.5h18M5 20V8.5h14V20M8 8V4.5h8V8M8.5 12h2M13.5 12h2M8.5 16h2M13.5 16h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 4.5V3h4v1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        </span>
+                        <span class="card-index">AULA / 02 · EM CONSTRUÇÃO</span>
+                    </div>
+                    <div class="card-copy">
+                        <p class="card-kicker">CONTEÚDO DO CURSO</p>
+                        <h2 id="classroom-title">Sala de Aula</h2>
+                        <p id="classroom-description">O destino ainda não foi configurado. Adicione o endereço nas configurações para habilitar o acesso.</p>
+                    </div>
+                    <a class="card-action classroom-config-link" href="/configuracoes">Configurar destino <span aria-hidden="true">↗</span></a>
+                    <span class="card-orbit" aria-hidden="true"></span>
+                </article>
+                {% endif %}
 
             </div>
 

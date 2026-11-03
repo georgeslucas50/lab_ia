@@ -242,9 +242,22 @@
     pendingService = null;
   });
   document.getElementById('refresh-button').addEventListener('click', () => refreshStatus(true));
-  document.getElementById('search-input').addEventListener('input', (event) => {
+  const searchInput = document.getElementById('search-input');
+  searchInput.addEventListener('input', (event) => {
     state.query = event.target.value.trim().toLocaleLowerCase('pt-BR');
     render();
+  });
+  document.addEventListener('keydown', (event) => {
+    const active = document.activeElement;
+    const isEditing = active && active.matches('input, textarea, select, [contenteditable="true"]');
+    if (event.key === '/' && !isEditing && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      searchInput.focus();
+    } else if (event.key === 'Escape' && active === searchInput && searchInput.value) {
+      searchInput.value = '';
+      state.query = '';
+      render();
+    }
   });
   document.getElementById('category-filter').addEventListener('change', (event) => {
     state.category = event.target.value;

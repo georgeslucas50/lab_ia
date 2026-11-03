@@ -4,6 +4,10 @@ Este diretório é persistente entre reinicializações do laboratório. Os serv
 podem ser acessados pelos nomes DNS internos do Compose; dentro de um notebook,
 `localhost` aponta para o próprio container Jupyter.
 
+Este notebook serve de ponto de partida para o módulo de APIs e integração com
+Python. O curso completo está em [docs/ANALISE_E_PLANO.md](../../docs/ANALISE_E_PLANO.md);
+use o [README](../../README.md) para instalação e portas do host.
+
 ## Teste o Ollama
 
 ```python
@@ -48,6 +52,11 @@ print(response.choices[0].message.content)
 | Redis | `REDIS_URL` | `redis://redis:6379/0` |
 | PostgreSQL | `POSTGRES_HOST` | `postgres:5432` |
 | Apache Tika | `TIKA_URL` | `http://tika:9998` |
+| Phoenix | `PHOENIX_COLLECTOR_ENDPOINT` | `http://phoenix:6006/v1/traces` |
 
 Alguns serviços só ficam disponíveis quando o perfil `full` está ativo. Use o
 dashboard para iniciá-los ou pará-los durante a aula.
+
+Não imprima nem compartilhe `OPENAI_API_KEY`, `LITELLM_API_KEY`, `NEO4J_AUTH`,
+`POSTGRES_PASSWORD` ou o token do Jupyter em notebooks, capturas de tela ou
+entregas. Não salve credenciais diretamente no notebook.

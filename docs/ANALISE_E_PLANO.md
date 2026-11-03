@@ -1,96 +1,147 @@
-# Análise técnica e plano de evolução
+# Análise técnica, lacunas e roteiro do curso
 
-## 1. Leitura do laboratório
+Este documento separa o que existe hoje no repositório do que ainda precisa ser preparado para uma aula. O Compose e o código são a fonte de verdade operacional; leia também [AGENTS.md](../AGENTS.md), [README.md](../README.md) e [ARCHITECTURE.md](ARCHITECTURE.md).
 
-O Compose define 18 serviços. O núcleo é formado por PostgreSQL, Redis, Ollama, LiteLLM, Open WebUI, Python MCP, Phoenix e dashboard. JupyterLab está no perfil `full`, junto a n8n, documentos, voz, construção visual de agentes, busca vetorial, grafos e navegação web. Portainer fica no perfil de administração. O dashboard customizado é a única interface central; a configuração antiga de Homepage estava órfã e foi removida.
+## 1. Objetivo e público
 
-O desenho tem bons blocos para ensino, mas o conjunto não é ainda uma plataforma de RAG/agentes integrada. Qdrant, Neo4j, Tika e Browserless sobem, porém o repositório não tem uma pipeline que extraia documentos, divida em trechos, gere embeddings, indexe no Qdrant e responda com recuperação. Também não há fluxo de GraphRAG demonstrando ingestão e consulta no Neo4j. A presença de uma porta ou container não comprova uma integração funcional.
+O laboratório atende alunos em instalação local individual. Neste estágio do curso, os alunos já estudaram Python, pandas e fundamentos de dados. A formação deve avançar da operação de modelos locais para integração por API, observabilidade, RAG, ferramentas, automações, agentes visuais e operação da stack.
 
-O setup anterior dependia de criar manualmente o usuário Ubuntu, instalava ferramentas de GPU sem separar o driver do Windows do suporte a containers e tentava iniciar o MCP por uma API FastMCP removida. O instalador novo seleciona Ubuntu 24.04, inicializa um usuário via cloud-init, ativa systemd, instala Docker e expõe o MCP com o app HTTP atual do FastMCP. O dashboard consulta os serviços em paralelo e diferencia falha de rede de serviço ativo.
+Ao final, espera-se que o aluno consiga explicar os principais serviços, usá-los em atividades, integrar serviços por API, identificar falhas comuns e manter seus dados locais. O currículo cobre todos os serviços de aprendizagem, exceto Portainer, cuja função é administrativa.
 
-## 2. Serviços para manter, tornar opcionais ou adicionar
+## 2. Estado atual do repositório
 
-| Decisão | Serviços | Motivo |
+- Windows usa Ubuntu 24.04 no WSL 2; Linux nativo usa Docker Engine/Compose no Ubuntu suportado. Os instaladores preparam Docker e `.env`, constroem imagens locais, baixam imagens remotas e os modelos iniciais, e aguardam os containers/healthchecks.
+- GPU NVIDIA é opcional. Windows mantém o driver no host; WSL/Ubuntu configura Container Toolkit e valida o uso por um container antes de ativar o overlay. CPU é fallback.
+- O Compose define 19 serviços: 17 de aprendizagem, `system-updater` e Portainer. Oito serviços de aprendizagem não usam perfil; `full` habilita mais nove; `management` habilita Portainer.
+- Dashboard é uma aplicação FastAPI/Jinja2 e centraliza links, estado, ações start/stop permitidas, documentação, diagrama, resets e atualização via GitHub.
+- Página inicial tem cartões Laboratório e Sala de Aula. Sala de Aula usa uma URL HTTP(S) editável em Configurações, persistida no volume `dashboard_settings`. Sem URL, mostra “Em Construção”. Isso é um link e não uma implementação de LMS.
+- JupyterLab está disponível no perfil `full`, tem volume persistente e variáveis para chamar serviços internos.
+- `.env` local contém credenciais e deve permanecer fora de commits e documentação.
+
+Consulte os números atuais diretamente em `docker-compose.yml`; a contagem por perfil depende de distinguir serviços de aprendizagem de suporte/administrativos.
+
+## 3. O que está integrado e o que ainda é lacuna
+
+| Capacidade | Estado que deve ser assumido | Trabalho necessário antes de ensinar como fluxo completo |
 | --- | --- | --- |
-| Manter sempre ativos | PostgreSQL, Redis, Ollama, LiteLLM, Open WebUI, Python MCP, dashboard e Phoenix | Formam o caminho base de chat, ferramentas e administração. Phoenix fica ativo porque o LiteLLM envia traces para ele. |
-| Manter em perfil opcional | n8n, Tika, Whisper, OpenEDAI TTS, Flowise, Qdrant, Neo4j, Browserless e Portainer | São recursos úteis em módulos específicos, mas aumentam RAM, CPU, armazenamento e tempo de inicialização. `full` ativa os serviços de aprendizagem; Portainer fica fora do padrão no perfil `management`. |
-| Não inserir como container fixo | Hermes Agent | É um cliente/runtime de agentes. Faz mais sentido instalar como ferramenta optativa no Ubuntu e conectá-lo ao LiteLLM e ao MCP quando a aula tratar de agentes autônomos. |
-| Incluir no perfil `full` | JupyterLab | Os notebooks são uma ferramenta central do curso; o serviço traz bibliotecas de dados/IA, persistência própria e configuração de rede para os serviços da stack. |
-| Considerar após necessidade de exposição externa | Caddy ou Traefik | Só acrescenta valor se o laboratório passar a servir usuários pela rede. Hoje as portas ficam em loopback; um proxy público aumentaria a área de exposição. |
-| Não adicionar ainda | Outro banco, broker ou servidor de modelos | A stack já tem PostgreSQL, Redis, Ollama, LiteLLM e dois bancos especializados. Primeiro implemente e ensine o fluxo de ponta a ponta. |
+| Ollama + Open WebUI | Stack permite chat local e Open WebUI está configurado via endpoint LiteLLM. | Preparar aula de execução/modelos, parâmetros, comparação e Modelfile. Se a aula exigir gestão nativa direta de modelos do Ollama na UI, configurar e demonstrar essa conexão. |
+| LiteLLM | Gateway OpenAI-compatível e rotas locais estão configurados; Redis e Phoenix participam da infraestrutura conforme configuração. | Conferir aliases, chaves, limites e cache atuais em `config/litellm/config.yaml` antes de escrever instruções. Não pressupor provedores de nuvem ativos. |
+| Phoenix | Interface/collector existem; LiteLLM envia traces conforme configuração atual. | Exercício precisa validar uma trace real e preparar datasets/rubricas/avaliadores. Tracing isolado não avalia automaticamente qualidade ou alucinação. |
+| RAG documental | Tika, modelo de embeddings e Qdrant estão disponíveis; Open WebUI possui capacidades nativas de documentos. | Criar e validar fluxo definido para a aula: extração, normalização, chunking, metadados, embeddings, indexação, busca, fontes, reindexação e limpeza. Não alegar que Tika/Qdrant sozinhos formam RAG. |
+| GraphRAG | Neo4j disponível para aulas. | Criar dataset/modelo de entidades, ingestão e consultas que mostrem a diferença para busca vetorial. O container sozinho não demonstra GraphRAG. |
+| Browserless | Chromium headless disponível; MCP oferece scraper. | Restringir alvos e inputs, explicar scraping versus busca web, validar limites e erros. Não tratar Browserless como buscador geral. |
+| MCP | Servidor Python expõe FastAPI/FastMCP em `/mcp` e inclui ferramentas de Tika, Browserless, Redis e saúde. | Demonstrar cliente compatível, validação de parâmetros e limites. Revisar autenticação e segurança antes de exposição além da máquina local. |
+| n8n e Flowise | Containers e interfaces existem, com persistência. | Preparar exemplos exportáveis, importar em ambiente limpo e verificar as integrações usadas. Não tratar cada ferramenta como um agente pronto antes de criar o fluxo. |
+| Voz | Faster-Whisper STT e OpenEDAI TTS estão configurados em serviços próprios. | Testar ciclo completo no Open WebUI e registrar latência, modelos/vozes, formatos aceitos e consumo da máquina de referência. |
+| Sala de Aula | Cartão configurável aponta para uma URL. | Portal, conteúdo, login, progresso, entregas e avaliações pertencem ao projeto separado; não há SSO ou API de sincronização implícita. |
 
-Hermes não é um servidor de modelos e não substitui Ollama, LiteLLM, n8n ou Flowise. Se adotado, deve ser uma opção de cliente: conectar ao endpoint OpenAI compatível do LiteLLM e registrar o MCP HTTP. Não deixe acesso a shell/ferramentas irrestritas em máquinas compartilhadas; use exercícios e credenciais isolados. A instalação em recipiente próprio só deve ser avaliada se a turma precisar de sessões persistentes e administradas pelo Compose.
+## 4. Roteiro do curso
 
-### Portas e rede
+### Módulo 1 — Ollama e Open WebUI
 
-As portas publicadas no Compose foram vinculadas a `127.0.0.1`. Isso evita que o Docker publique esses serviços em todas as interfaces da máquina. Entre containers, use nomes DNS do Compose, por exemplo `http://ollama:11434`, `http://litellm:4000` e `http://qdrant:6333`. Entre Windows e WSL 2, use `http://localhost:<porta>`.
+Operar o servidor local e a interface: listar, baixar, inspecionar e remover modelos; comparar tamanho, quantização, contexto, RAM/VRAM e latência; criar customizações Modelfile; usar chat, instruções e presets do Workspace; experimentar visão quando houver modelo compatível. Diferenciar personalização/prompt de fine-tuning dos pesos.
 
-Portainer é uma interface administrativa e tem acesso ao socket Docker. A montagem como somente leitura não transforma a API do socket numa interface sem privilégios; deixe o serviço fora do perfil de aprendizagem, ative-o apenas na aula de gestão e mantenha-o local. Configure autenticação inicial no primeiro acesso. O mesmo vale para n8n, Neo4j e Flowise: não os exponha à LAN sem autenticação e controle de acesso apropriados.
+**Prática:** criar um assistente local e comparar duas opções de modelo ou configuração com as mesmas perguntas.
 
-## 3. Inicialização Windows, WSL e GPU
+### Módulo 2 — APIs, LiteLLM e Python
 
-O fluxo automatizado usa Ubuntu 24.04 no WSL 2, instala Docker Engine/Compose dentro da distribuição e executa `docker compose --profile full --profile management up -d --build`, cobrindo os 18 serviços. O script pede elevação, agenda retomada após reinicialização quando recursos do Windows ou o driver exigirem reboot, e não remove distribuições existentes. Se o catálogo ou a validação da NVIDIA falhar, instala a stack em CPU e informa como habilitar a GPU depois. O perfil GPU só é passado se `nvidia-smi` funcionar no Ubuntu.
+Usar Jupyter para fazer chamadas ao Ollama e LiteLLM, gerar embeddings, organizar resultados com Python, lidar com erros/timeouts e medir latência. Entender API compatível com OpenAI, aliases, cache Redis e papel do PostgreSQL sem aprofundar administração de banco.
 
-Há dois componentes diferentes no suporte NVIDIA:
+**Prática:** notebook reprodutível que compara respostas e registra métricas sem salvar credenciais no código.
 
-1. O driver de GPU é instalado no Windows. O script preserva um driver que já funciona; se houver GPU NVIDIA sem `nvidia-smi`, consulta o catálogo oficial, valida domínio e assinatura do instalador e instala somente o driver de vídeo.
-2. O NVIDIA Container Toolkit é instalado no Ubuntu WSL para que o Docker encaminhe a GPU ao container Ollama. O instalador deliberadamente não instala um driver Linux dentro do WSL.
+### Módulo 3 — Phoenix: tracing e avaliação
 
-Sem NVIDIA compatível, o Compose inicia em CPU. Requisitos e limites de reinicialização estão descritos no README. Os modelos e dados ficam em volumes Docker no sistema de arquivos Linux do WSL. Isso mantém os dados pesados fora do diretório Windows; os arquivos de código continuam no local do projeto.
+Ler traces/spans, entradas/saídas, latência e erros; criar exemplos e critérios explícitos para avaliação; comparar modelos e prompts; tratar conteúdo de traces como dados potencialmente sensíveis.
 
-## 4. Plano de melhorias
+**Prática:** instrumentar a atividade de API e comparar duas versões com uma pequena rubrica/dataset.
 
-### Etapa A — Instalação confiável e repetível
+### Módulo 4 — RAG documental e vetorial
 
-- Executar o instalador em Windows 10/11 limpo, com e sem NVIDIA, e também numa máquina que já tenha outra distribuição WSL e outros projetos Docker.
-- Validar retomada após reinicialização e preservar a instalação quando a rede ou o download de imagens falhar.
-- Fixar versões testadas das imagens, principalmente `latest`, `main` e `main-latest`, depois de decidir uma cadência de atualização. Manter `postgres:16-alpine` como base previsível.
-- Fazer uma matriz curta de portas ocupadas, sem parar aplicações de terceiros automaticamente.
+Trabalhar com extração via Tika, limpeza e chunking, metadados, embeddings do Ollama, coleções Qdrant, busca semântica e apresentação de fontes. Cobrir reindexação e remoção segura.
 
-### Etapa B — Caminho didático mínimo
+**Prática:** responder perguntas a partir de um conjunto de documentos da aula e exibir os trechos recuperados.
 
-- Acrescentar um exemplo completo Open WebUI → LiteLLM → Ollama e outro de n8n → MCP.
-- Documentar modelos compatíveis com VRAM e RAM diferentes e ensinar como iniciar/parar serviços opcionais por perfil.
-- Medir o custo dos oito serviços sempre ativos e só ligar n8n no perfil `full` ou `workflows`.
+### Módulo 5 — Neo4j, GraphRAG e coleta de páginas
 
-### Etapa C — RAG real
+Modelar entidades/relações, consultar Neo4j, usar Browserless/MCP para coleta controlada e comparar busca em grafo com busca vetorial. Separar scraping de web search.
 
-- Implementar ingestão de PDF e texto: upload → Tika → normalização → chunking com metadados → embeddings via Ollama/LiteLLM → coleção no Qdrant.
-- Implementar busca com filtros e apresentar trechos/fontes junto da resposta.
-- Acrescentar limpeza/reindexação, limites de tamanho, tipos permitidos e proteção contra URLs arbitrárias no endpoint de ingestão.
-- Manter Neo4j como uma aula separada de GraphRAG, com modelo de entidades/relacionamentos, estratégia de extração e consultas demonstráveis. Não anunciar o banco isolado como GraphRAG pronto.
+**Prática:** dataset pequeno com relações explícitas e perguntas que demonstrem quando o grafo ajuda.
 
-### Etapa D — Segurança, observabilidade e operação
+### Módulo 6 — MCP e ferramentas
 
-- Fixar tags ou digests de imagens e atualizar numa janela planejada, em vez de seguir `latest` em cada reinstalação.
-- Manter `.env` fora do controle de versão e um `.env.example` sem credenciais. O exemplo estava idêntico ao `.env` local; foi substituído por marcadores e um `.gitignore` protege os segredos em commits futuros.
-- Acrescentar autenticação ou política de acesso à API interna do MCP, validar URLs de scraping/OCR e restringir destinos privados para reduzir SSRF.
-- Incluir backup/restore documentado dos volumes PostgreSQL, n8n, Qdrant e Neo4j; testar restauração antes de cada ciclo de aulas.
-- Configurar explicitamente tracing do LiteLLM para Phoenix e incluir uma atividade que confirme traces e latências.
-- Adicionar healthchecks onde a imagem oferece endpoint estável e distinguir “serviço fora do perfil” de “serviço com falha”.
-- Registrar consumo de RAM/VRAM em uma aula padrão para recalibrar os limites por máquina.
+Entender function calling e MCP, testar ferramentas disponíveis, construir uma ferramenta Python com esquema e validação, conectar ferramenta a um cliente/fluxo e limitar permissões.
 
-## 5. Desempenho
+**Prática:** agente que chama uma ferramenta de domínio controlado e retorna resultado estruturado.
 
-- Ollama fica limitado a um modelo carregado e uma geração paralela para reduzir pressão de VRAM. O keep-alive de 10 minutos reduz recarga durante a aula; ajuste conforme o uso compartilhado.
-- Use `llama3.2:3b` como opção inicial em GPUs de 8 GB e `nomic-embed-text` para embeddings. `llama3.1:8b` deve ser opcional, pois pode competir com contexto e memória da GPU.
-- Faster-Whisper está em CPU int8 para não disputar VRAM do Ollama. Tika, Chromium e Neo4j podem pressionar RAM/CPU quando vários alunos iniciam tarefas pesadas ao mesmo tempo.
-- O Redis ganhou limite de 256 MB; o Neo4j usa heap e page cache menores. Esses valores são pontos de partida, não substituem medição em máquinas da turma.
-- Em notebooks com 16 GB de RAM, use perfis por aula em vez de abrir sempre todos os serviços. 32 GB deixa o perfil completo mais confortável.
-- Os dados persistentes usam volumes nomeados no ext4 do WSL. Evite guardar modelos, bancos e caches grandes em `/mnt/c`; o código no diretório Windows pode ser usado, mas operações com muitos arquivos pequenos são mais lentas que no ext4.
-- Não configure limites globais fixos de memória do WSL sem conhecer a RAM dos alunos. Se for necessário usar `.wslconfig`, forneça exemplos por faixa de RAM e ensine a reiniciar o WSL para aplicar a configuração.
+### Módulo 7 — Automação com n8n
 
-## 6. Hermes Agent: decisão
+Usar triggers, webhooks, HTTP, condições, transformações, chamadas LiteLLM/MCP, tratamento de timeout/erro e credenciais salvas no n8n.
 
-**Recomendação: não subir Hermes automaticamente junto da stack.** O laboratório já inclui n8n (automação), Flowise (construtor visual), Open WebUI (chat) e Python MCP (ferramentas). Hermes seria redundante como serviço permanente para o objetivo atual e executaria num contexto de agente com permissões próprias.
+**Prática:** workflow acionado por webhook que chama um modelo, estrutura resultado e apresenta falhas de forma previsível.
 
-Inclua-o como atividade opcional depois que o endpoint LiteLLM e o MCP estiverem documentados. A aula deve configurar o provedor OpenAI compatível para `http://localhost:4000/v1`, selecionar um modelo configurado no LiteLLM e apontar as ferramentas ao endpoint `/mcp`. Primeiro valide uma integração real com um agente; só então decida se vale manter instruções ou uma imagem própria no repositório.
+### Módulo 8 — Fluxos e agentes visuais com Flowise
 
-## 7. Referências técnicas
+Criar fluxos com modelo, prompt, retriever e ferramentas; inspecionar conexões, contexto e estado; comparar com Python e n8n.
 
-- [Instalar WSL](https://learn.microsoft.com/en-us/windows/wsl/install) e [configurar systemd](https://learn.microsoft.com/en-us/windows/wsl/systemd).
-- [Cloud-init no Ubuntu para WSL](https://ubuntu.com/wsl/docs/latest/howto/cloud-init/).
-- [CUDA no WSL](https://docs.nvidia.com/cuda/wsl-user-guide/) e [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-- [Publicação de portas no Docker Compose](https://docs.docker.com/reference/compose-file/services/).
-- [Implantação HTTP do FastMCP](https://gofastmcp.com/deployment/http) e [LiteLLM com Phoenix](https://docs.litellm.ai/docs/observability/langfuse_otel_integration).
-- [Hermes Agent](https://github.com/NousResearch/hermes-agent).
+**Prática:** protótipo visual de RAG ou agente e análise dos limites do fluxo.
+
+### Módulo 9 — Áudio e multimodalidade
+
+Conectar entrada de áudio, Whisper STT, modelo e TTS; tratar imagens com modelos de visão Ollama compatíveis; avaliar qualidade, latência e limites de CPU/GPU.
+
+**Prática:** protótipo que recebe áudio ou imagem e produz resposta textual ou falada.
+
+### Módulo 10 — Operação e projeto final
+
+Usar dashboard e Docker Compose sem Portainer; ler estados/healthchecks e logs; operar perfis; explicar DNS/portas, dependências, volumes, reset, backup/restore, atualização pelo GitHub e uso de RAM/VRAM. Não apagar dados sem confirmação explícita.
+
+**Projeto final:** aplicação local com modelo, RAG sobre documentos, uma ferramenta/automação, trace Phoenix e avaliação definida. Entregar código/notebook ou export do fluxo, conjunto de avaliação e instruções de operação/diagnóstico.
+
+## 5. Plano de evolução técnica
+
+### Prioridade A — Repetibilidade da stack
+
+- Fixar versões testadas/digests de imagens que ainda usam `latest`, `main` ou `main-latest`; estabelecer política e cadência de atualização.
+- Manter matriz de instalação Windows/WSL com e sem GPU e Ubuntu Linux nativo, incluindo atualização e retomada após reboot.
+- Verificar perfis e dashboard contra os serviços que realmente existem no Compose; diferenciar “fora do perfil”, “não criado”, “parado” e “falhou”.
+
+### Prioridade B — Caminho de modelo e observabilidade
+
+- Documentar caminho Open WebUI → LiteLLM → Ollama e chamada Jupyter → LiteLLM/Ollama.
+- Preparar demonstração de Phoenix com trace reproduzível, dataset e avaliadores explícitos.
+- Documentar configurações reais de aliases/chaves/cache; não publicar tokens ou valores de `.env`.
+
+### Prioridade C — RAG e agentes demonstráveis
+
+- Completar e validar uma pipeline documental com ingestão, limites de tamanho/tipo, chunking, metadados, embeddings, busca, fontes e reindexação.
+- Fazer atividade separada de GraphRAG que crie e consulte relações no Neo4j.
+- Proteger MCP e scraping: validar destino, bloquear redes privadas quando apropriado, impor timeout/tamanho e restringir acesso.
+- Versionar exemplos n8n/Flowise exportáveis, com dados de exemplo e sem credenciais pessoais.
+
+### Prioridade D — Dados e operação
+
+- Documentar backup e restore de PostgreSQL, Jupyter, n8n, Qdrant e Neo4j; praticar restauração em dados descartáveis.
+- Medir consumo de memória/CPU/VRAM por aula e documentar perfis enxutos para máquinas de 16 GB.
+- Fixar healthchecks e mensagens do dashboard; manter resets compartilhados claramente descritos.
+- Manter o destino da Sala de Aula no volume `dashboard_settings`, fora dos resets de dados didáticos.
+
+## 6. Desempenho e segurança operacional
+
+- Começar com `llama3.2:3b` e `nomic-embed-text`; testar modelos maiores apenas contra capacidade da máquina.
+- Ollama, Chromium, Neo4j e extração de documentos podem disputar memória/CPU. Faster-Whisper está configurado em CPU para reduzir disputa de VRAM.
+- Volumes Docker guardam dados em filesystem Linux do WSL ou host Linux. Evite dados pesados em `/mnt/c`; backups devem considerar volume e projeto separadamente.
+- Portas locais são de loopback; acesso por rede exige desenho de segurança novo. Não publicar por padrão.
+- `.env` nunca entra no Git. Tokens, arquivos de aluno, logs com prompts e dumps de banco não devem ser incluídos em suporte público.
+- O reset de PostgreSQL afeta bancos de várias aplicações; o reset de Redis afeta caches e memória compartilhados.
+- A instalação precisa de internet para baixar imagens/modelos. “Local” não significa que qualquer integração opcional (provedores externos, scraping, web search) seja automaticamente offline.
+
+## 7. Referências
+
+- [Instalação e inventário](../README.md)
+- [Arquitetura](ARCHITECTURE.md)
+- [Instruções para agentes](../AGENTS.md)
+- [Início do Jupyter](../learning/notebooks/INICIO.md)
+- [WSL e systemd](https://learn.microsoft.com/en-us/windows/wsl/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+- [FastMCP](https://gofastmcp.com/deployment/http)

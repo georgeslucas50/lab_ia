@@ -6,14 +6,15 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0b1020">
   <title>Laboratório IA | Configurações</title>
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261020-personal">
-  <script defer src="/static/js/settings.js?v=20261019-github-source-2"></script>
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261021-classroom">
+  <script defer src="/static/js/settings.js?v=20261021-classroom"></script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Navegação principal">
       <a class="brand" href="/dashboard" aria-label="Laboratório IA, início">
-        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2.5 14.7 9.3 21.5 12l-6.8 2.7L12 21.5l-2.7-6.8L2.5 12l6.8-2.7L12 2.5Z" fill="currentColor"/><circle cx="12" cy="12" r="2.1" fill="#7662df"/></svg></span>
         <span><strong>Laboratório IA</strong></span>
       </a>
       <div class="nav-label">Workspace</div>
@@ -30,7 +31,7 @@
       <div class="sidebar-footer"><span class="live-dot"></span> Painel conectado</div>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content" id="main-content" tabindex="-1">
       <header class="topbar">
         <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>Configurações</strong></div>
         <div class="topbar-actions"><span class="local-pill"><span class="live-dot"></span> Somente local</span><a class="button button-quiet" href="/dashboard">Voltar aos serviços</a></div>
@@ -65,6 +66,26 @@
         <span class="reset-progress-spinner" aria-hidden="true"></span>
         <div><strong id="update-progress-phase">Preparando atualização</strong><p id="update-progress-message"></p></div>
       </div>
+
+      <section class="classroom-settings" aria-labelledby="classroom-settings-title">
+        <div class="classroom-settings-heading">
+          <span class="classroom-settings-icon" aria-hidden="true">⌂</span>
+          <div>
+            <p class="eyebrow">ACESSO AO CURSO</p>
+            <h2 id="classroom-settings-title">Destino da Sala de Aula</h2>
+            <p>Configure o endereço que será aberto pelo botão da página inicial.</p>
+          </div>
+        </div>
+        <form id="classroom-settings-form" class="classroom-settings-form">
+          <label for="classroom-destination">URL da Sala de Aula</label>
+          <div class="classroom-settings-controls">
+            <input id="classroom-destination" name="destination" type="url" maxlength="2048" autocomplete="url" inputmode="url" placeholder="https://exemplo.com/sala-de-aula" value="{{ classroom_url }}" aria-describedby="classroom-settings-help classroom-settings-status">
+            <button class="button button-update" id="classroom-save-button" type="submit">Salvar destino</button>
+          </div>
+          <p class="classroom-settings-help" id="classroom-settings-help">Use um endereço completo iniciado por http:// ou https://. Deixe o campo vazio e salve para exibir “Em Construção” na página inicial. A configuração fica salva neste laboratório e é preservada ao atualizar ou zerar os dados dos alunos.</p>
+          <p class="classroom-settings-status" id="classroom-settings-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
 
       <section class="reset-banner" aria-labelledby="reset-all-title">
         <div class="reset-banner-icon" aria-hidden="true">↺</div>
