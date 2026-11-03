@@ -10,7 +10,7 @@ Ao final, espera-se que o aluno consiga explicar os principais serviços, usá-l
 
 ## 2. Estado atual do repositório
 
-- Windows usa Ubuntu 24.04 no WSL 2 e segue o [guia manual](INSTALACAO_WINDOWS_WSL.md) para instalar Docker Engine e subir o Compose; o instalador PowerShell foi removido. Linux nativo continua usando `scripts/preparar_ambiente_linux.sh`.
+- Os ambientes alvo são Ubuntu 24.04 no WSL 2 e Ubuntu nativo, ambos usando os mesmos serviços Compose. O roteiro de instalação é distribuído separadamente do repositório.
 - GPU NVIDIA é opcional. No WSL, o driver fica no Windows e o aluno configura o Container Toolkit no Ubuntu; no Linux nativo, o instalador configura Toolkit quando disponível. CPU é fallback.
 - O Compose define 19 serviços: 17 de aprendizagem, `system-updater` e Portainer. Oito serviços de aprendizagem não usam perfil; `full` habilita mais nove; `management` habilita Portainer.
 - Dashboard é uma aplicação FastAPI/Jinja2 e centraliza links, estado, ações start/stop permitidas, documentação, diagrama, resets e atualização via GitHub.
@@ -102,7 +102,6 @@ Usar dashboard e Docker Compose sem Portainer; ler estados/healthchecks e logs; 
 ### Prioridade A — Repetibilidade da stack
 
 - Fixar versões testadas/digests de imagens que ainda usam `latest`, `main` ou `main-latest`; estabelecer política e cadência de atualização.
-- Manter matriz de instalação Windows/WSL com e sem GPU e Ubuntu Linux nativo, incluindo atualização e retomada após reboot.
 - Verificar perfis e dashboard contra os serviços que realmente existem no Compose; diferenciar “fora do perfil”, “não criado”, “parado” e “falhou”.
 
 ### Prioridade B — Caminho de modelo e observabilidade
@@ -133,11 +132,11 @@ Usar dashboard e Docker Compose sem Portainer; ler estados/healthchecks e logs; 
 - Portas locais são de loopback; acesso por rede exige desenho de segurança novo. Não publicar por padrão.
 - `.env` nunca entra no Git. Tokens, arquivos de aluno, logs com prompts e dumps de banco não devem ser incluídos em suporte público.
 - O reset de PostgreSQL afeta bancos de várias aplicações; o reset de Redis afeta caches e memória compartilhados.
-- A instalação precisa de internet para baixar imagens/modelos. “Local” não significa que qualquer integração opcional (provedores externos, scraping, web search) seja automaticamente offline.
+- O primeiro download de imagens e modelos precisa de internet. “Local” não significa que qualquer integração opcional (provedores externos, scraping, web search) seja automaticamente offline.
 
 ## 7. Referências
 
-- [Instalação e inventário](../README.md)
+- [Visão do projeto e inventário](../README.md)
 - [Arquitetura](ARCHITECTURE.md)
 - [Instruções para agentes](../AGENTS.md)
 - [Início do Jupyter](../learning/notebooks/INICIO.md)

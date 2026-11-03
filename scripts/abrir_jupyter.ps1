@@ -3,12 +3,12 @@ $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $envPath = Join-Path $ProjectRoot '.env'
 
 if (-not (Test-Path -LiteralPath $envPath)) {
-    throw 'Arquivo .env não encontrado. Siga o guia manual de instalação, crie .env e inicie o Compose antes de abrir o JupyterLab.'
+    throw 'Arquivo .env não encontrado. O JupyterLab precisa de JUPYTER_TOKEN configurado no arquivo .env.'
 }
 
 $tokenLine = Get-Content -LiteralPath $envPath | Where-Object { $_ -match '^\s*JUPYTER_TOKEN\s*=' } | Select-Object -Last 1
 if ($tokenLine -notmatch '^\s*JUPYTER_TOKEN\s*=(.*)$' -or [string]::IsNullOrWhiteSpace($Matches[1])) {
-    throw 'JUPYTER_TOKEN ausente no .env. Gere o token conforme o guia manual de instalação e recrie o serviço Jupyter.'
+    throw 'JUPYTER_TOKEN está vazio no arquivo .env.'
 }
 $token = $Matches[1].Trim()
 

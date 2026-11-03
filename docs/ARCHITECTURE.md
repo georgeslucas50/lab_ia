@@ -1,6 +1,6 @@
 # Arquitetura atual do Laboratório de IA
 
-Este documento descreve o estado implementado no repositório. Para instalar, siga o [README](../README.md). Para regras de manutenção por agentes, consulte [AGENTS.md](../AGENTS.md). A configuração executável em `docker-compose.yml` é a fonte de verdade para nomes, portas, volumes e perfis; confira-a antes de atualizar este texto.
+Este documento descreve o estado implementado no repositório. Consulte o [inventário de serviços](../README.md) e, para regras de manutenção por agentes, [AGENTS.md](../AGENTS.md). A configuração executável em `docker-compose.yml` é a fonte de verdade para nomes, portas, volumes e perfis; confira-a antes de atualizar este texto.
 
 ## Propósito e execução
 
@@ -59,7 +59,7 @@ As linhas pontilhadas indicam integração que depende de configuração ou de u
 
 - Serviços sem perfil são o núcleo. `full` habilita atividades com documentos, voz, n8n, Flowise, Qdrant, Neo4j, Browserless e Jupyter.
 - `management` habilita Portainer. O curso deve usar o dashboard e Compose e excluir Portainer de seus exercícios.
-- No Windows/WSL, o aluno segue o [guia manual](INSTALACAO_WINDOWS_WSL.md) para instalar Ubuntu e Docker Engine e operar o Compose; a automação PowerShell de preparação foi removida. No Ubuntu nativo, `scripts/preparar_ambiente_linux.sh` continua instalando/preparando `.env`, imagens e modelos iniciais.
+- Os ambientes Windows/WSL e Ubuntu nativo usam os mesmos arquivos Compose. O preparo do host é documentado fora deste repositório; aqui ficam a definição dos serviços e sua operação.
 - `docker-compose.gpu.yml` é um overlay opcional aplicado apenas após validar o driver no host, no WSL quando aplicável e em um container Docker. O driver fica no Windows ou no Ubuntu host, nunca no Ubuntu WSL.
 - As portas publicadas ficam em `127.0.0.1`. Não mude para `0.0.0.0` sem desenho explícito de autenticação, firewall e exposição de rede.
 - `ai_network` permite comunicação privada entre containers. Consulte as portas específicas no README e o serviço em `docker-compose.yml` antes de documentar um endpoint.
@@ -81,7 +81,7 @@ Antes de alterar resets, volumes ou bancos, leia `RESET_VOLUME_NAMES`, `RESET_TA
 - `/` serve a página inicial; `/dashboard` exibe serviços; `/documentacao`, `/configuracoes` e `/diagrama` apresentam documentação, manutenção e arquitetura.
 - A Sala de Aula é um link configurável, não uma integração LMS: **Configurações → Destino da Sala de Aula** grava uma URL HTTP(S) em `dashboard_settings`. Sem URL, a página mostra “Em Construção”.
 - O dashboard lê o estado via Docker API e pode iniciar/parar serviços permitidos. O container do dashboard é excluído da própria lista de controle para evitar desligar o painel em uso.
-- O botão de atualização consulta o branch padrão do GitHub através do `system-updater`; instalação por ZIP não tem o remoto Git necessário. O atualizador faz backup das mudanças locais, sincroniza a versão publicada e recria os serviços da stack conforme o procedimento da interface.
+- O botão de atualização consulta o branch padrão do GitHub através do `system-updater`; o atualizador requer um remoto Git `origin`. Ele faz backup das mudanças locais, sincroniza a versão publicada e recria os serviços da stack conforme o procedimento da interface.
 - O dashboard monta `apps/dashboard` em `/app` somente leitura. HTML e assets são servidos a partir do bind mount; quando mudar CSS/JS, altere a query de cache da página. Mudanças em Python importado requerem recriar/reiniciar o serviço dashboard.
 
 ## Limites de integração didática conhecidos

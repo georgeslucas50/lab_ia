@@ -22,15 +22,14 @@ Este arquivo é a orientação de trabalho deste repositório. Leia-o antes de a
 
 - `docker-compose.yml`: serviços, imagens, portas, dependências, variáveis, perfis, rede e volumes.
 - `docker-compose.gpu.yml`: reserva de GPU NVIDIA no Compose; driver fica no host Windows/Linux, não no WSL.
-- `docs/INSTALACAO_WINDOWS_WSL.md`: instalação manual no Windows/WSL; não recrie o instalador PowerShell removido após falhas que afetaram a sessão do Windows.
-- `scripts/preparar_ambiente_linux.sh`: instalador do Ubuntu nativo; `scripts/aguardar_servicos.sh` confirma a prontidão da stack.
+- `scripts/aguardar_servicos.sh`: confirma a prontidão da stack.
 - `apps/dashboard/main.py`: rotas, controle de serviços, reset, atualizador e destino da Sala de Aula.
 - `apps/dashboard/templates/` e `apps/dashboard/static/`: interface, CSS e JavaScript do dashboard.
 - `apps/updater/`: atualização a partir do repositório GitHub.
 - `apps/python-mcp/server.py`: API e ferramentas MCP.
 - `config/litellm/config.yaml`: aliases e rotas do gateway LiteLLM.
 - `learning/notebooks/`: exercícios iniciais Jupyter.
-- `README.md`: instalação e operação para alunos.
+- `README.md`: visão do projeto, inventário de serviços e operação.
 - `docs/ARCHITECTURE.md`: desenho atual, fluxos e estado das integrações.
 - `docs/ANALISE_E_PLANO.md`: decisões técnicas, lacunas e roteiro didático.
 - Mantenha `AGENTS.md` conciso e operacional. Não o use para guardar segredos, configurações privadas ou histórico de conversa.
@@ -54,7 +53,7 @@ O Compose tem 19 serviços definidos: 17 de aprendizagem, `system-updater` e `po
 
 Confira as portas e os perfis no Compose/README; não mantenha uma segunda lista contraditória em documentação auxiliar.
 
-No Windows/WSL, mantenha o fluxo manual documentado em `docs/INSTALACAO_WINDOWS_WSL.md`: WSL/Ubuntu, systemd, Docker Engine, clone Git, `.env` com segredos, Compose, modelos iniciais e verificação dos serviços. O instalador do Ubuntu nativo deve preparar `.env`, construir serviços locais, baixar imagens remotas, subir `full` e `management`, baixar os modelos iniciais e aguardar os 19 containers (healthchecks quando definidos). Só ative `docker-compose.gpu.yml` após validar a GPU no host e em um container; falhas devem manter o fallback CPU.
+O roteiro de instalação é distribuído em documento separado e não deve ser reincorporado ao README ou à documentação do Git sem pedido explícito. O setup do projeto é manual; não recrie instaladores automatizados. `docker-compose.yml` e `.env.example` permanecem como configuração executável. Valide a GPU no host e em um container antes de usar `docker-compose.gpu.yml`; mantenha CPU como fallback.
 
 ## Contratos e limites que não devem ser quebrados
 
@@ -69,29 +68,9 @@ No Windows/WSL, mantenha o fluxo manual documentado em `docs/INSTALACAO_WINDOWS_
 - Volumes nomeados guardam dados importantes. Não execute `docker compose down -v`, remova volumes, zere serviços ou reinstale WSL por iniciativa própria. Essas ações apagam dados e exigem solicitação explícita.
 - Nunca pare ou remova distribuições WSL, containers ou serviços de outros projetos para liberar recursos/portas sem autorização.
 
-## Comandos e ambiente
+## Ambiente de desenvolvimento
 
-Execute comandos Compose no diretório clonado dentro do Ubuntu Linux/WSL correspondente. No Windows, o `docker` pode não estar no PowerShell; descubra a distribuição e o caminho WSL reais. Exemplo PowerShell, substituindo os valores pelo ambiente da máquina (se o clone estiver em `/home/aluno/lab_ia`, use esse caminho em vez de `/mnt/c/...`):
-
-```powershell
-$distroUbuntu = 'Ubuntu-24.04'
-$wslProjectPath = '/mnt/c/Users/SEU_USUARIO/lab_ia'
-wsl.exe -d $distroUbuntu -- bash -lc "cd '$wslProjectPath' && docker compose config -q"
-```
-
-```bash
-# Validar a configuração sem iniciar os containers
-docker compose config -q
-
-# Subir serviços de aprendizagem, sem Portainer
-docker compose --profile full up -d --build
-
-# GPU: somente após validar NVIDIA Container Toolkit no Linux/WSL
-docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile full up -d --build
-
-# Atualizar apenas o dashboard quando a mudança e a autorização permitirem
-docker compose up -d --force-recreate dashboard
-```
+Execute operações Compose a partir do clone dentro da distribuição Ubuntu Linux/WSL correspondente. O Docker CLI do host Windows pode não apontar para esse daemon. Não inclua procedimentos de instalação do host nos documentos deste repositório; o roteiro fica separado.
 
 O serviço `dashboard` monta `apps/dashboard` como somente leitura. Templates, CSS e JavaScript são servidos do bind mount; altere a query de cache (`?v=...`) ao mudar assets. Alterações em Python já importado, como `main.py`, exigem recriar/reiniciar o container para entrar em vigor. Não reconstrua ou reinicie a stack inteira se uma atualização isolada do serviço bastar.
 
