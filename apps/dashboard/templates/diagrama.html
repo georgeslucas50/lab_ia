@@ -359,7 +359,7 @@
             <h2 class="section-label" id="layers-title">Camadas da infraestrutura</h2>
             <div class="architecture-key" aria-label="Legenda dos serviços">
                 <span><i class="key-dot" aria-hidden="true"></i>Sem perfil: inicia sem seleção adicional</span>
-                <span><i class="key-dot optional" aria-hidden="true"></i>Perfil Compose: instaladores ativam <code>full</code> e <code>management</code>; no modo manual, use <code>docker compose --profile full --profile management up -d</code></span>
+                <span><i class="key-dot optional" aria-hidden="true"></i>Perfil Compose: no guia Windows e no instalador Linux, a stack completa usa <code>full</code> e <code>management</code></span>
             </div>
             {% for group in service_groups %}
                 <section class="layer" aria-labelledby="layer-{{ group.number }}">

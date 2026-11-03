@@ -29,31 +29,13 @@ Depois da instalação, acesse [http://localhost:9090/dashboard](http://localhos
 
 ## Instalação no Windows
 
-Requisitos recomendados: Windows 11 (ou Windows 10 21H2/build 19044+), Git para Windows, virtualização habilitada na BIOS/UEFI, 16 GB de RAM (32 GB recomendado), 8 GB de VRAM para modelos locais maiores e pelo menos 40 GB livres em disco. A instalação baixa imagens Docker e modelos de IA.
+A instalação no Windows é manual: o aluno instala WSL 2 e Ubuntu, configura o Docker Engine dentro do Ubuntu, clona o repositório e inicia os containers com Docker Compose. **Não execute um script PowerShell de preparação do ambiente.** Siga o [guia detalhado de instalação Windows/WSL](docs/INSTALACAO_WINDOWS_WSL.md), que também mostra como criar o `.env`, baixar as imagens e modelos iniciais, verificar os serviços e habilitar GPU NVIDIA opcional.
 
-> **Importante:** clone o repositório com Git. Não use **Code → Download ZIP** no GitHub: o arquivo ZIP não inclui o histórico Git necessário para verificar e aplicar atualizações pelo dashboard.
-
-Se o Git ainda não estiver instalado, instale o [Git para Windows](https://git-scm.com/download/win), feche e reabra o PowerShell. Depois execute:
-
-```powershell
-git -c core.autocrlf=input clone https://github.com/georgeslucas50/lab_ia.git "$HOME\lab_ia"
-git -C "$HOME\lab_ia" config core.autocrlf input
-Set-Location "$HOME\lab_ia"
-Set-ExecutionPolicy -Scope Process Bypass
-.\scripts\preparar_ambiente.ps1
-```
-
-Essa configuração mantém os finais de linha compatíveis com os scripts Linux do WSL. O instalador solicita elevação pelo UAC quando necessário. Aceite para habilitar os componentes do Windows e configurar o WSL 2. Execute os comandos na pasta clonada; mantenha essa pasta no mesmo local para futuras atualizações.
-
-O instalador verifica ou habilita WSL 2, instala Ubuntu 24.04 quando necessário, configura o usuário Linux `aluno` automaticamente na distribuição nova, habilita systemd e verifica ou instala o Docker Engine e o plugin Compose dentro do Ubuntu. Uma distribuição `Ubuntu-24.04` já existente é preservada. Se detectar uma GPU NVIDIA sem driver funcional, busca o driver assinado no site da NVIDIA e instala apenas o driver de vídeo no Windows. O instalador só ativa a GPU no Compose depois de confirmar o driver no Windows, no WSL e em um container Docker. Se a GPU não estiver disponível, o laboratório continua em CPU. No Ubuntu WSL, instala o NVIDIA Container Toolkit, nunca o driver Linux. Se o Windows pedir reinicialização, o instalador retoma a configuração no próximo login.
-
-O script cria `.env` com segredos aleatórios quando o arquivo não existe e acrescenta somente chaves ausentes ou vazias quando ele já existe. Os valores preenchidos são preservados. Não compartilhe esse arquivo. Em seguida, valida o Compose, constrói as imagens locais, baixa as imagens remotas, inicia os perfis `full` e `management` (19 serviços), baixa os dois modelos iniciais e confere o estado de todos os containers e healthchecks configurados. A primeira execução pode baixar vários gigabytes e demorar; o script informa quais serviços precisam de atenção se algum não ficar pronto.
-
-Quando a preparação terminar, o dashboard abre em [http://localhost:9090/dashboard](http://localhost:9090/dashboard); a página inicial fica em [http://localhost:9090](http://localhost:9090).
+O guia usa o Docker Engine dentro da distribuição Ubuntu WSL, não o Docker Desktop. Clone o projeto dentro do diretório Linux (`/home/...`) e use `git clone`, não **Code → Download ZIP**: o atualizador do dashboard precisa do remoto e do histórico Git. As credenciais ficam em `.env`, arquivo local ignorado pelo Git; não o compartilhe.
 
 ## Serviços e portas
 
-O Compose define 19 serviços: 17 serviços de aprendizagem, o `system-updater` de apoio e o Portainer. Oito serviços de aprendizagem iniciam sem perfil; o perfil `full` acrescenta os outros nove. Assim, `docker compose --profile full up -d` inicia 18 containers contando o atualizador, sem Portainer; o perfil `management` acrescenta o Portainer. Os instaladores Windows e Linux ativam `full` e `management`.
+O Compose define 19 serviços: 17 serviços de aprendizagem, o `system-updater` de apoio e o Portainer. Oito serviços de aprendizagem iniciam sem perfil; o perfil `full` acrescenta os outros nove. Assim, `docker compose --profile full up -d` inicia 18 containers contando o atualizador, sem Portainer; o perfil `management` acrescenta o Portainer. O guia Windows e o instalador Linux usam `full` e `management`.
 
 | Serviço | Porta local | Perfil | Uso |
 | --- | ---: | --- | --- |
@@ -83,11 +65,11 @@ No dashboard, **Documentação** abre o índice de guias por container e **Confi
 
 Em **Configurações**, informe a URL HTTP ou HTTPS da plataforma de aulas para habilitar o botão **Sala de Aula** na página inicial. Sem um destino configurado, o cartão informa que está em construção e oferece um atalho para essa configuração. O endereço é salvo no volume persistente do dashboard e permanece após atualizações do projeto e resets dos dados dos alunos; deixe o campo vazio e salve para remover o destino.
 
-Em **Configurações**, **Verificar atualizações** consulta o branch padrão diretamente no GitHub, sem depender da branch, dos commits ou das alterações pendentes da cópia local. **Atualizar sistema** sincroniza o código com o branch padrão publicado, inclusive quando não há um commit novo para reaplicar. Antes de trocar os arquivos, o atualizador guarda alterações locais e não rastreadas em um backup do Git; elas não são mescladas automaticamente. O arquivo `.env` e os volumes nomeados são preservados. A operação exige digitar `ATUALIZAR LABORATÓRIO`, valida o Compose, atualiza imagens e recria os serviços dos perfis `full` e `management`. Os containers podem reiniciar e as imagens podem exigir vários gigabytes de download. O instalador cria um token interno aleatório em `.env`; `GITHUB_TOKEN` é opcional e só deve ser preenchido localmente para remotos privados via HTTPS. Nunca publique `.env`.
+Em **Configurações**, **Verificar atualizações** consulta o branch padrão diretamente no GitHub, sem depender da branch, dos commits ou das alterações pendentes da cópia local. **Atualizar sistema** sincroniza o código com o branch padrão publicado, inclusive quando não há um commit novo para reaplicar. Antes de trocar os arquivos, o atualizador guarda alterações locais e não rastreadas em um backup do Git; elas não são mescladas automaticamente. O arquivo `.env` e os volumes nomeados são preservados. A operação exige digitar `ATUALIZAR LABORATÓRIO`, valida o Compose, atualiza imagens e recria os serviços dos perfis `full` e `management`. Os containers podem reiniciar e as imagens podem exigir vários gigabytes de download. O instalador Linux gera o token interno em `.env`; na instalação Windows manual, siga a etapa de criação de credenciais do guia. `GITHUB_TOKEN` é opcional e só deve ser preenchido localmente para remotos privados via HTTPS. Nunca publique `.env`.
 
-Em instalações antigas feitas pelo ZIP, execute o instalador atualizado para que ele tente preparar os metadados Git sem substituir arquivos locais. Para novas instalações, use sempre `git clone` como mostrado acima. Se os arquivos locais diferirem do repositório remoto, o dashboard bloqueará a atualização até que as diferenças sejam resolvidas.
+Instalações antigas feitas por ZIP devem passar para um clone Git para habilitar as atualizações do dashboard. Se você já usou o laboratório no mesmo Ubuntu/WSL, pare a stack antiga antes de iniciar o clone novo e preserve o `.env` correspondente aos volumes existentes. Não apague volumes como parte da troca de pasta. Se os arquivos locais diferirem do repositório remoto, o dashboard bloqueará a atualização até que as diferenças sejam resolvidas.
 
-O JupyterLab usa o volume persistente `jupyter_storage`, inclui bibliotecas Python para dados e APIs de IA e recebe endpoints internos por variáveis de ambiente (`OLLAMA_HOST`, `OPENAI_BASE_URL`, `QDRANT_URL`, `NEO4J_URI`, `REDIS_URL`, `PYTHON_MCP_URL` e outras). No Windows, execute `scripts\abrir_jupyter.ps1`; no Ubuntu nativo, execute `./scripts/abrir_jupyter.sh`. As instruções e um exemplo inicial ficam em `learning\notebooks\INICIO.md`.
+O JupyterLab usa o volume persistente `jupyter_storage`, inclui bibliotecas Python para dados e APIs de IA e recebe endpoints internos por variáveis de ambiente (`OLLAMA_HOST`, `OPENAI_BASE_URL`, `QDRANT_URL`, `NEO4J_URI`, `REDIS_URL`, `PYTHON_MCP_URL` e outras). No Ubuntu nativo ou no Ubuntu WSL, execute `bash scripts/abrir_jupyter.sh`. As instruções e um exemplo inicial ficam em `learning\notebooks\INICIO.md`.
 
 ## Modelos locais
 
@@ -99,7 +81,7 @@ Para confirmar a GPU dentro do Ubuntu WSL:
 wsl -d Ubuntu-24.04 -- nvidia-smi
 ```
 
-No Ubuntu nativo, confira o driver com `nvidia-smi`. O instalador habilita a GPU somente depois de validar o driver do host, o NVIDIA Container Toolkit e o acesso a partir de um container. Consulte a [documentação oficial de instalação do Docker para Ubuntu](https://docs.docker.com/engine/install/ubuntu/) e a [documentação do NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) para requisitos e solução de problemas.
+No Ubuntu nativo, confira o driver com `nvidia-smi`. O instalador Linux habilita a GPU somente depois de validar o driver do host, o NVIDIA Container Toolkit e o acesso por um container. No WSL, o driver deve ser instalado no Windows e o Toolkit dentro do Ubuntu, conforme o guia manual. Consulte a [documentação oficial de instalação do Docker para Ubuntu](https://docs.docker.com/engine/install/ubuntu/) e a [documentação do NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) para requisitos e solução de problemas.
 
 Se não houver GPU NVIDIA, use os modelos em CPU; o desempenho será menor.
 

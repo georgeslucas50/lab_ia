@@ -90,7 +90,7 @@ SERVICES_DATA = [
         "port": 8888,
         "url": "http://localhost:8888/lab",
         "internal_url": "http://jupyter:8888",
-        "description": "Ambiente persistente de notebooks Python com bibliotecas de ciência de dados e clientes de IA. Para abrir já autenticado, execute scripts\\abrir_jupyter.ps1; as APIs internas do laboratório estão disponíveis por variáveis de ambiente.",
+        "description": "Ambiente persistente de notebooks Python com bibliotecas de ciência de dados e clientes de IA. No Ubuntu (nativo ou WSL), execute bash scripts/abrir_jupyter.sh para abrir com autenticação; as APIs internas estão disponíveis por variáveis de ambiente.",
         "check_type": "tcp",
         "check_host": "jupyter",
         "check_port": 8888

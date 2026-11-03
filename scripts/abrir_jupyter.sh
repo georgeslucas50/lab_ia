@@ -5,14 +5,14 @@ PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
 
 if [[ ! -r "$ENV_FILE" ]]; then
-  printf 'Arquivo .env não encontrado. Execute scripts/preparar_ambiente_linux.sh primeiro.\n' >&2
+  printf 'Arquivo .env não encontrado. Siga o guia de instalação, crie .env e inicie o Compose antes de abrir o JupyterLab.\n' >&2
   exit 1
 fi
 
 # Leia somente a chave necessária; não execute o conteúdo do arquivo como shell.
 TOKEN="$(awk -F= '$1 == "JUPYTER_TOKEN" { value=substr($0, index($0, "=") + 1) } END { print value }' "$ENV_FILE")"
 if [[ -z "$TOKEN" ]]; then
-  printf 'JUPYTER_TOKEN está vazio. Execute novamente o instalador do laboratório.\n' >&2
+  printf 'JUPYTER_TOKEN está vazio. Gere o token conforme o guia de instalação e recrie o serviço Jupyter.\n' >&2
   exit 1
 fi
 

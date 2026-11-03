@@ -10,8 +10,8 @@ Ao final, espera-se que o aluno consiga explicar os principais serviços, usá-l
 
 ## 2. Estado atual do repositório
 
-- Windows usa Ubuntu 24.04 no WSL 2; Linux nativo usa Docker Engine/Compose no Ubuntu suportado. Os instaladores preparam Docker e `.env`, constroem imagens locais, baixam imagens remotas e os modelos iniciais, e aguardam os containers/healthchecks.
-- GPU NVIDIA é opcional. Windows mantém o driver no host; WSL/Ubuntu configura Container Toolkit e valida o uso por um container antes de ativar o overlay. CPU é fallback.
+- Windows usa Ubuntu 24.04 no WSL 2 e segue o [guia manual](INSTALACAO_WINDOWS_WSL.md) para instalar Docker Engine e subir o Compose; o instalador PowerShell foi removido. Linux nativo continua usando `scripts/preparar_ambiente_linux.sh`.
+- GPU NVIDIA é opcional. No WSL, o driver fica no Windows e o aluno configura o Container Toolkit no Ubuntu; no Linux nativo, o instalador configura Toolkit quando disponível. CPU é fallback.
 - O Compose define 19 serviços: 17 de aprendizagem, `system-updater` e Portainer. Oito serviços de aprendizagem não usam perfil; `full` habilita mais nove; `management` habilita Portainer.
 - Dashboard é uma aplicação FastAPI/Jinja2 e centraliza links, estado, ações start/stop permitidas, documentação, diagrama, resets e atualização via GitHub.
 - Página inicial tem cartões Laboratório e Sala de Aula. Sala de Aula usa uma URL HTTP(S) editável em Configurações, persistida no volume `dashboard_settings`. Sem URL, mostra “Em Construção”. Isso é um link e não uma implementação de LMS.

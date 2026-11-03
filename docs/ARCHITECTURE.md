@@ -59,7 +59,7 @@ As linhas pontilhadas indicam integração que depende de configuração ou de u
 
 - Serviços sem perfil são o núcleo. `full` habilita atividades com documentos, voz, n8n, Flowise, Qdrant, Neo4j, Browserless e Jupyter.
 - `management` habilita Portainer. O curso deve usar o dashboard e Compose e excluir Portainer de seus exercícios.
-- Os instaladores verificam/preparam Docker, `.env` e os serviços, constroem imagens locais, baixam imagens remotas e os dois modelos iniciais, e esperam os containers ficarem em execução e seus healthchecks configurados ficarem saudáveis.
+- No Windows/WSL, o aluno segue o [guia manual](INSTALACAO_WINDOWS_WSL.md) para instalar Ubuntu e Docker Engine e operar o Compose; a automação PowerShell de preparação foi removida. No Ubuntu nativo, `scripts/preparar_ambiente_linux.sh` continua instalando/preparando `.env`, imagens e modelos iniciais.
 - `docker-compose.gpu.yml` é um overlay opcional aplicado apenas após validar o driver no host, no WSL quando aplicável e em um container Docker. O driver fica no Windows ou no Ubuntu host, nunca no Ubuntu WSL.
 - As portas publicadas ficam em `127.0.0.1`. Não mude para `0.0.0.0` sem desenho explícito de autenticação, firewall e exposição de rede.
 - `ai_network` permite comunicação privada entre containers. Consulte as portas específicas no README e o serviço em `docker-compose.yml` antes de documentar um endpoint.

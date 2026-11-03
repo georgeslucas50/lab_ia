@@ -22,7 +22,8 @@ Este arquivo é a orientação de trabalho deste repositório. Leia-o antes de a
 
 - `docker-compose.yml`: serviços, imagens, portas, dependências, variáveis, perfis, rede e volumes.
 - `docker-compose.gpu.yml`: reserva de GPU NVIDIA no Compose; driver fica no host Windows/Linux, não no WSL.
-- `scripts/preparar_ambiente.ps1` e `scripts/preparar_ambiente_linux.sh`: instalação e inicialização para cada sistema; `scripts/install_docker.sh` prepara Docker no WSL e `scripts/aguardar_servicos.sh` confirma a prontidão da stack.
+- `docs/INSTALACAO_WINDOWS_WSL.md`: instalação manual no Windows/WSL; não recrie o instalador PowerShell removido após falhas que afetaram a sessão do Windows.
+- `scripts/preparar_ambiente_linux.sh`: instalador do Ubuntu nativo; `scripts/aguardar_servicos.sh` confirma a prontidão da stack.
 - `apps/dashboard/main.py`: rotas, controle de serviços, reset, atualizador e destino da Sala de Aula.
 - `apps/dashboard/templates/` e `apps/dashboard/static/`: interface, CSS e JavaScript do dashboard.
 - `apps/updater/`: atualização a partir do repositório GitHub.
@@ -53,7 +54,7 @@ O Compose tem 19 serviços definidos: 17 de aprendizagem, `system-updater` e `po
 
 Confira as portas e os perfis no Compose/README; não mantenha uma segunda lista contraditória em documentação auxiliar.
 
-Os instaladores devem preparar `.env`, validar e construir serviços locais, baixar imagens remotas, subir os perfis `full` e `management`, baixar os modelos iniciais e aguardar os 19 containers (healthchecks quando definidos). No Windows, verifique a GPU dentro de um container Docker antes de ativar `docker-compose.gpu.yml`; falhas de GPU devem manter o fallback CPU.
+No Windows/WSL, mantenha o fluxo manual documentado em `docs/INSTALACAO_WINDOWS_WSL.md`: WSL/Ubuntu, systemd, Docker Engine, clone Git, `.env` com segredos, Compose, modelos iniciais e verificação dos serviços. O instalador do Ubuntu nativo deve preparar `.env`, construir serviços locais, baixar imagens remotas, subir `full` e `management`, baixar os modelos iniciais e aguardar os 19 containers (healthchecks quando definidos). Só ative `docker-compose.gpu.yml` após validar a GPU no host e em um container; falhas devem manter o fallback CPU.
 
 ## Contratos e limites que não devem ser quebrados
 
